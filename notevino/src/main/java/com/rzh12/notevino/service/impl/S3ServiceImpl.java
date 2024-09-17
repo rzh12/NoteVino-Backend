@@ -38,12 +38,22 @@ public class S3ServiceImpl implements S3Service {
 
     @Override
     public String uploadFile(MultipartFile file) {
-        String key = "uploads/" + UUID.randomUUID();  // 使用 UUID 生成唯一文件名
+        // 取得原始檔名的副檔名
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        String contentType = file.getContentType();
+
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        String key = "uploads/" + UUID.randomUUID() + extension;  // 使用 UUID 生成唯一文件名
 
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
+                    .contentType(contentType)
                     .build();
 
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
