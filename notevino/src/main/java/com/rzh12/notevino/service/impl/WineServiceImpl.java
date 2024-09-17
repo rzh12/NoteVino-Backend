@@ -19,8 +19,8 @@ public class WineServiceImpl implements WineService {
 
     @Override
     public void addNewWine(WineRequest wineRequest, MultipartFile image) {
+        // 上傳圖片到 S3 並獲取 URL
         if (image != null && !image.isEmpty()) {
-            // 上傳圖片到 S3 並獲取 URL
             String imageUrl = s3Service.uploadFile(image);
             wineRequest.setImageUrl(imageUrl);
         }
