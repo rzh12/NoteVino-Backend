@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class WineRequest {
-    private Integer userId;
+public class WineResponse {
+    private Integer wineId;
     private String name;
     private String region;
-    private String type;  // ENUM
+    private String type;
     private Integer vintage;
-    private String imageUrl; // S3
+    private String imageUrl;
 }
