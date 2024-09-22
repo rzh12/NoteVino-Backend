@@ -9,4 +9,10 @@ public interface WineRepository {
     void saveWine(WineRequest wineRequest);
 
     List<WineResponse> findAllByUserId(Integer userId);
+
+    boolean existsByIds(Integer wineId, Integer userId);
+
+    void updateWine(Integer wineId, WineRequest wineRequest);
+
+    void softDeleteWineById(Integer wineId);
 }

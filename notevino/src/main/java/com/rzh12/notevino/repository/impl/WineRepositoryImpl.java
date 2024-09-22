@@ -31,7 +31,7 @@ public class WineRepositoryImpl implements WineRepository {
 
     @Override
     public List<WineResponse> findAllByUserId(Integer userId) {
-        String sql = "SELECT wine_id, name, region, type, vintage, image_url FROM user_uploaded_wines WHERE user_id = ?";
+        String sql = "SELECT wine_id, name, region, type, vintage, image_url FROM user_uploaded_wines WHERE user_id = ? AND is_deleted = 0";
         return jdbcTemplate.query(sql, new Object[]{userId}, (rs, rowNum) ->
                 new WineResponse(
                         rs.getInt("wine_id"),
@@ -42,5 +42,30 @@ public class WineRepositoryImpl implements WineRepository {
                         rs.getString("image_url")
                 )
         );
+    }
+
+    @Override
+    public boolean existsByIds(Integer wineId, Integer userId) {
+        String sql = "SELECT COUNT(*) FROM user_uploaded_wines WHERE wine_id = ? AND user_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, new Object[]{wineId, userId}, Integer.class);
+        return count != null && count > 0;
+    }
+
+    @Override
+    public void updateWine(Integer wineId, WineRequest wineRequest) {
+        String sql = "UPDATE user_uploaded_wines SET name = ?, region = ?, type = ?, vintage = ? WHERE wine_id = ?";
+        jdbcTemplate.update(sql,
+                wineRequest.getName(),
+                wineRequest.getRegion(),
+                wineRequest.getType(),
+                wineRequest.getVintage(),
+                wineId
+        );
+    }
+
+    @Override
+    public void softDeleteWineById(Integer wineId) {
+        String sql = "UPDATE user_uploaded_wines SET is_deleted = 1 WHERE wine_id = ?";
+        jdbcTemplate.update(sql, wineId);
     }
 }

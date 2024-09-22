@@ -10,4 +10,8 @@ public interface WineService {
     void addNewWine(WineRequest wineRequest, MultipartFile image);
 
     List<WineResponse> getUserUploadedWines();
+
+    boolean updateWine(Integer wineId, WineRequest wineRequest);
+
+    boolean deleteWine(Integer wineId);
 }

@@ -42,8 +42,36 @@ public class WineServiceImpl implements WineService {
         return wineRepository.findAllByUserId(userId);
     }
 
-    private Integer getCurrentUserId() {
-        // 取得當前用戶ID的邏輯，這裡可以集成你的用戶認證系統
-        return 1;  // 示例用戶ID
+    @Override
+    public boolean updateWine(Integer wineId, WineRequest wineRequest) {
+        Integer userId = getCurrentUserId();  // 獲取當前使用者ID
+
+        // 檢查是否存在該葡萄酒、檢查該葡萄酒是否屬於當前使用者
+        if (wineRepository.existsByIds(wineId, userId)) {
+            // 更新葡萄酒信息，不能更新 imageUrl
+            wineRepository.updateWine(wineId, wineRequest);
+            return true;
+        }
+        return false;
     }
+
+    @Override
+    public boolean deleteWine(Integer wineId) {
+        Integer userId = getCurrentUserId();  // 獲取當前使用者ID
+
+        // 檢查該葡萄酒是否屬於當前使用者
+        if (wineRepository.existsByIds(wineId, userId)) {
+            // 刪除葡萄酒和相關的品鑒筆記
+            wineRepository.softDeleteWineById(wineId);
+            return true;
+        }
+        return false;
+    }
+
+    private Integer getCurrentUserId() {
+        // 從安全上下文中獲取當前使用者ID
+        // 假設我們有 JWT 或 Spring Security 可以幫助取得 userId
+        return 1;  // 假設目前為用戶 ID 1
+    }
+
 }

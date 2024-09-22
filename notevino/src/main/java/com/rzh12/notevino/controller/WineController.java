@@ -52,4 +52,39 @@ public class WineController {
         ApiResponse response = new ApiResponse(true, "Wines retrieved successfully!", wineList);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @PutMapping("/{wineId}")
+    public ResponseEntity<ApiResponse> editWine(
+            @PathVariable Integer wineId,
+            @RequestParam("info") String wineDataString) throws IOException {
+
+        // 使用 ObjectMapper 解析 JSON 字符串
+        ObjectMapper objectMapper = new ObjectMapper();
+        WineRequest wineRequest = objectMapper.readValue(wineDataString, WineRequest.class);
+
+        // 調用服務層處理數據
+        boolean updated = wineService.updateWine(wineId, wineRequest);
+
+        // 判斷是否成功更新
+        if (updated) {
+            ApiResponse response = new ApiResponse(true, "Wine updated successfully!", null);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, "Wine not found!", null));
+        }
+    }
+
+    @DeleteMapping("/{wineId}")
+    public ResponseEntity<ApiResponse> deleteWine(
+            @PathVariable Integer wineId) {
+
+        boolean deleted = wineService.deleteWine(wineId);
+
+        if (deleted) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, "Wine not found or unauthorized!", null));
+        }
+    }
+
 }
