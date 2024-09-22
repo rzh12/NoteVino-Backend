@@ -18,7 +18,7 @@ public class NoteRepositoryImpl implements NoteRepository {
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public boolean existsWineByIds(Integer wineId, Integer userId) {
+    public boolean existsWineByIdAndUserId(Integer wineId, Integer userId) {
         String sql = "SELECT COUNT(*) FROM user_uploaded_wines WHERE wine_id = ? AND user_id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, new Object[]{wineId, userId}, Integer.class);
         return count != null && count > 0;
@@ -90,5 +90,26 @@ public class NoteRepositoryImpl implements NoteRepository {
             default:
                 throw new IllegalArgumentException("Unknown note type: " + noteType);
         }
+    }
+
+    @Override
+    public boolean existsNoteByIdAndUserId(Integer noteId, Integer userId) {
+        String sql = "SELECT COUNT(*) FROM tasting_notes WHERE note_id = ? AND user_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, new Object[]{noteId, userId}, Integer.class);
+        return count != null && count > 0;
+    }
+
+    @Override
+    public boolean updateFreeFormNote(Integer noteId, FreeFormNoteRequest freeFormNoteRequest) {
+        String sql = "UPDATE freeform_notes SET content = ? WHERE note_id = ?";
+        jdbcTemplate.update(sql, freeFormNoteRequest.getContent(), noteId);
+        return true;
+    }
+
+    @Override
+    public boolean deleteNoteById(Integer noteId) {
+        String sql = "DELETE FROM tasting_notes WHERE note_id = ?";
+        jdbcTemplate.update(sql, noteId);
+        return true;
     }
 }

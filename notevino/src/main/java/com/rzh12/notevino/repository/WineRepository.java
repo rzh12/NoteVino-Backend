@@ -10,7 +10,7 @@ public interface WineRepository {
 
     List<WineResponse> findAllByUserId(Integer userId);
 
-    boolean existsByIds(Integer wineId, Integer userId);
+    boolean existsByIdAndUserId(Integer wineId, Integer userId);
 
     void updateWine(Integer wineId, WineRequest wineRequest);
 

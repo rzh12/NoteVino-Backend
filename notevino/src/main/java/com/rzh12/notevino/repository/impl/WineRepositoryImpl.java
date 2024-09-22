@@ -45,7 +45,7 @@ public class WineRepositoryImpl implements WineRepository {
     }
 
     @Override
-    public boolean existsByIds(Integer wineId, Integer userId) {
+    public boolean existsByIdAndUserId(Integer wineId, Integer userId) {
         String sql = "SELECT COUNT(*) FROM user_uploaded_wines WHERE wine_id = ? AND user_id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, new Object[]{wineId, userId}, Integer.class);
         return count != null && count > 0;

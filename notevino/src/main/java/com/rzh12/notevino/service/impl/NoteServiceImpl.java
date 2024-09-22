@@ -18,7 +18,7 @@ public class NoteServiceImpl implements NoteService {
         Integer userId = getCurrentUserId();  // 獲取當前使用者ID
 
         // 檢查該葡萄酒是否屬於當前使用者
-        if (noteRepository.existsWineByIds(wineId, userId)) {
+        if (noteRepository.existsWineByIdAndUserId(wineId, userId)) {
             // 創建 Tasting Note 和 FreeForm Note
             return noteRepository.createFreeFormNote(wineId, userId, freeFormNoteRequest);
         }
@@ -33,6 +33,30 @@ public class NoteServiceImpl implements NoteService {
             return noteRepository.getWineDetailsWithNotes(wineId);
         }
         return null;
+    }
+
+    @Override
+    public boolean updateFreeFormNote(Integer wineId, Integer noteId, FreeFormNoteRequest freeFormNoteRequest) {
+        Integer userId = getCurrentUserId();  // 獲取當前使用者ID
+
+        // 檢查該葡萄酒是否屬於當前使用者，並且筆記也屬於該使用者
+        if (noteRepository.existsWineByIdAndUserId(wineId, userId) && noteRepository.existsNoteByIdAndUserId(noteId, userId)) {
+            // 更新 FreeForm 筆記
+            return noteRepository.updateFreeFormNote(noteId, freeFormNoteRequest);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean deleteNote(Integer wineId, Integer noteId) {
+        Integer userId = getCurrentUserId();  // 獲取當前使用者ID
+
+        // 檢查該葡萄酒和筆記是否屬於當前使用者
+        if (noteRepository.existsWineByIdAndUserId(wineId, userId) && noteRepository.existsNoteByIdAndUserId(noteId, userId)) {
+            // 刪除筆記
+            return noteRepository.deleteNoteById(noteId);
+        }
+        return false;
     }
 
     private Integer getCurrentUserId() {

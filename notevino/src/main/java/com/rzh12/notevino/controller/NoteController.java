@@ -41,4 +41,34 @@ public class NoteController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, "Wine not found!", null));
         }
     }
+
+    @PutMapping("/{wineId}/notes/{noteId}")
+    public ResponseEntity<ApiResponse> updateTastingNote(
+            @PathVariable Integer wineId,
+            @PathVariable Integer noteId,
+            @RequestBody FreeFormNoteRequest freeFormNoteRequest) {
+
+        boolean noteUpdated = noteService.updateFreeFormNote(wineId, noteId, freeFormNoteRequest);
+
+        if (noteUpdated) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse(true, "Note updated successfully!", null));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, "Wine or Note not found!", null));
+        }
+    }
+
+    // 刪除特定葡萄酒的品飲筆記
+    @DeleteMapping("/{wineId}/notes/{noteId}")
+    public ResponseEntity<ApiResponse> deleteTastingNote(
+            @PathVariable Integer wineId,
+            @PathVariable Integer noteId) {
+
+        boolean noteDeleted = noteService.deleteNote(wineId, noteId);
+
+        if (noteDeleted) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, "Wine or Note not found!", null));
+        }
+    }
 }

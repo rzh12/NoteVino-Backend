@@ -47,7 +47,7 @@ public class WineServiceImpl implements WineService {
         Integer userId = getCurrentUserId();  // 獲取當前使用者ID
 
         // 檢查是否存在該葡萄酒、檢查該葡萄酒是否屬於當前使用者
-        if (wineRepository.existsByIds(wineId, userId)) {
+        if (wineRepository.existsByIdAndUserId(wineId, userId)) {
             // 更新葡萄酒信息，不能更新 imageUrl
             wineRepository.updateWine(wineId, wineRequest);
             return true;
@@ -60,7 +60,7 @@ public class WineServiceImpl implements WineService {
         Integer userId = getCurrentUserId();  // 獲取當前使用者ID
 
         // 檢查該葡萄酒是否屬於當前使用者
-        if (wineRepository.existsByIds(wineId, userId)) {
+        if (wineRepository.existsByIdAndUserId(wineId, userId)) {
             // 刪除葡萄酒和相關的品鑒筆記
             wineRepository.softDeleteWineById(wineId);
             return true;
