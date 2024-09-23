@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -25,7 +26,7 @@ public class NoteRepositoryImpl implements NoteRepository {
     }
 
     @Override
-    public boolean createFreeFormNote(Integer wineId, Integer userId, FreeFormNoteRequest freeFormNoteRequest) {
+    public FreeFormNoteResponse createFreeFormNoteAndReturnDetails(Integer wineId, Integer userId, FreeFormNoteRequest freeFormNoteRequest) {
         // 插入 tasting_notes
         String noteSql = "INSERT INTO tasting_notes (wine_id, user_id, note_type) VALUES (?, ?, 'FreeForm')";
         jdbcTemplate.update(noteSql, wineId, userId);
@@ -38,7 +39,11 @@ public class NoteRepositoryImpl implements NoteRepository {
         String freeFormSql = "INSERT INTO freeform_notes (note_id, content) VALUES (?, ?)";
         jdbcTemplate.update(freeFormSql, noteId, freeFormNoteRequest.getContent());
 
-        return true;
+        // 查詢剛剛插入的 note 的 created_at
+        String getCreatedAtSql = "SELECT created_at FROM tasting_notes WHERE note_id = ?";
+        LocalDateTime createdAt = jdbcTemplate.queryForObject(getCreatedAtSql, new Object[]{noteId}, (rs, rowNum) -> rs.getTimestamp("created_at").toLocalDateTime());
+
+        return new FreeFormNoteResponse(noteId, freeFormNoteRequest.getContent(), createdAt);
     }
 
     @Override

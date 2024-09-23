@@ -2,6 +2,7 @@ package com.rzh12.notevino.controller;
 
 import com.rzh12.notevino.dto.ApiResponse;
 import com.rzh12.notevino.dto.FreeFormNoteRequest;
+import com.rzh12.notevino.dto.FreeFormNoteResponse;
 import com.rzh12.notevino.dto.WineDetailsResponse;
 import com.rzh12.notevino.service.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,16 +18,18 @@ public class NoteController {
     private NoteService noteService;
 
     @PostMapping("/{wineId}/notes")
-    public ResponseEntity<ApiResponse> createTastingNote(
+    public ResponseEntity<ApiResponse<FreeFormNoteResponse>> createTastingNote(
             @PathVariable Integer wineId,
             @RequestBody FreeFormNoteRequest freeFormNoteRequest) {
 
-        boolean noteCreated = noteService.createFreeFormNote(wineId, freeFormNoteRequest);
+        FreeFormNoteResponse noteResponse = noteService.createFreeFormNote(wineId, freeFormNoteRequest);
 
-        if (noteCreated) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(true, "Note created successfully!", null));
+        if (noteResponse != null) {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponse<>(true, "Note created successfully!", noteResponse));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, "Failed to create note!", null));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(false, "Failed to create note!", null));
         }
     }
 

@@ -1,11 +1,14 @@
 package com.rzh12.notevino.service.impl;
 
 import com.rzh12.notevino.dto.FreeFormNoteRequest;
+import com.rzh12.notevino.dto.FreeFormNoteResponse;
 import com.rzh12.notevino.dto.WineDetailsResponse;
 import com.rzh12.notevino.repository.NoteRepository;
 import com.rzh12.notevino.service.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 public class NoteServiceImpl implements NoteService {
@@ -14,15 +17,14 @@ public class NoteServiceImpl implements NoteService {
     private NoteRepository noteRepository;
 
     @Override
-    public boolean createFreeFormNote(Integer wineId, FreeFormNoteRequest freeFormNoteRequest) {
+    public FreeFormNoteResponse createFreeFormNote(Integer wineId, FreeFormNoteRequest freeFormNoteRequest) {
         Integer userId = getCurrentUserId();  // 獲取當前使用者ID
 
-        // 檢查該葡萄酒是否屬於當前使用者
         if (noteRepository.existsWineByIdAndUserId(wineId, userId)) {
-            // 創建 Tasting Note 和 FreeForm Note
-            return noteRepository.createFreeFormNote(wineId, userId, freeFormNoteRequest);
+            // 創建並返回新的筆記，包括 noteId 和 created_at
+            return noteRepository.createFreeFormNoteAndReturnDetails(wineId, userId, freeFormNoteRequest);
         }
-        return false;
+        return null;
     }
 
     @Override
