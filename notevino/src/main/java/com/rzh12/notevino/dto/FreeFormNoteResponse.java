@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FreeFormNoteResponse implements NoteResponse {
+    private Integer noteId;
     private String content;
     private LocalDateTime createdAt;
 }

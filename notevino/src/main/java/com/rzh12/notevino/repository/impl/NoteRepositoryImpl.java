@@ -85,7 +85,7 @@ public class NoteRepositoryImpl implements NoteRepository {
             case "FreeForm":
                 String freeFormSql = "SELECT content, created_at FROM freeform_notes WHERE note_id = ?";
                 return jdbcTemplate.queryForObject(freeFormSql, new Object[]{noteId}, (rs, rowNum) ->
-                        new FreeFormNoteResponse(rs.getString("content"), rs.getTimestamp("created_at").toLocalDateTime())
+                        new FreeFormNoteResponse(noteId, rs.getString("content"), rs.getTimestamp("created_at").toLocalDateTime())
                 );
             default:
                 throw new IllegalArgumentException("Unknown note type: " + noteType);
