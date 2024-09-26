@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String updateProfilePicture(MultipartFile file) {
+    public String updateAvatar(MultipartFile file) {
         // 取得當前用戶ID
         Integer userId = getCurrentUserId();
 
@@ -119,7 +119,7 @@ public class UserServiceImpl implements UserService {
             String imageUrl = s3Service.uploadFile(file, "avatar");
 
             // 更新資料庫中用戶的圖片 URL
-            userRepository.updateUserProfilePicture(userId, imageUrl);
+            userRepository.updateUserAvatar(userId, imageUrl);
 
             return imageUrl;
         } else {

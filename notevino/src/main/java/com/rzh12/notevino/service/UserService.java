@@ -15,6 +15,6 @@ public interface UserService {
     // 根據 email 查詢用戶信息
     UserResponse findUserByEmail(String email);
 
-    String updateProfilePicture(MultipartFile file);
+    String updateAvatar(MultipartFile file);
 
 }

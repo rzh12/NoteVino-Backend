@@ -8,5 +8,5 @@ public interface UserRepository {
     User findByEmail(String email);
 
     // 更新用戶的大頭貼 URL
-    void updateUserProfilePicture(Integer userId, String imageUrl);
+    void updateUserAvatar(Integer userId, String imageUrl);
 }

@@ -85,11 +85,11 @@ public class UserController {
     }
 
     // 新增上傳大頭貼 API
-    @PostMapping("/upload/profile-picture")
-    public ResponseEntity<?> uploadProfilePicture(@RequestParam("file") MultipartFile file) {
+    @PostMapping("/upload-avatar")
+    public ResponseEntity<?> uploadAvatar(@RequestParam("picture") MultipartFile picture) {
         try {
             // 更新用戶的圖片並返回圖片的 URL
-            String imageUrl = userService.updateProfilePicture(file);
+            String imageUrl = userService.updateAvatar(picture);
             return new ResponseEntity<>(Map.of("imageUrl", imageUrl), HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);

@@ -51,7 +51,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     // 更新用戶的大頭貼 URL
     @Override
-    public void updateUserProfilePicture(Integer userId, String imageUrl) {
+    public void updateUserAvatar(Integer userId, String imageUrl) {
         String sql = "UPDATE users SET picture = ? WHERE user_id = ?";
         jdbcTemplate.update(sql, imageUrl, userId);
     }

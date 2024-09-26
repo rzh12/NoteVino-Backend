@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/signup", "/api/users/signin", "/api/wines/{wineId}", "/api/wines/search").permitAll()  // 允許未經認證的 API
                         .requestMatchers("/api/wines/upload", "/api/wines/{wineId}", "/api/wines/{wineId}/notes",
-                                "/api/wines/{wineId}/notes/{noteId}").authenticated()  // 需要認證的 API
+                                "/api/wines/{wineId}/notes/{noteId}", "/api/users/profile", "/api/users/upload-avatar").authenticated()  // 需要認證的 API
                         .anyRequest().permitAll()  // 允許其他 API
                 )
                 .sessionManagement(session -> session
