@@ -6,4 +6,7 @@ public interface UserRepository {
     void save(User user);
     boolean existsByEmail(String email);
     User findByEmail(String email);
+
+    // 更新用戶的大頭貼 URL
+    void updateUserProfilePicture(Integer userId, String imageUrl);
 }

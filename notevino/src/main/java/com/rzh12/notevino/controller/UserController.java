@@ -1,5 +1,6 @@
 package com.rzh12.notevino.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rzh12.notevino.dto.UserDetailDTO;
 import com.rzh12.notevino.dto.UserSigninRequest;
 import com.rzh12.notevino.dto.UserSignupRequest;
@@ -10,7 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,10 +26,18 @@ public class UserController {
 
     // 用戶註冊 API，註冊成功後返回 JWT Token
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(@RequestBody UserSignupRequest userRequest) {
+    public ResponseEntity<?> signUp(
+            @RequestParam("user") String userDataString,  // 接收 JSON 格式的資料
+            @RequestParam(value = "picture", required = false) MultipartFile picture) throws IOException {
         try {
+            // 將 JSON 字符串轉換為 UserSignupRequest 對象
+            ObjectMapper objectMapper = new ObjectMapper();
+            UserSignupRequest userRequest = objectMapper.readValue(userDataString, UserSignupRequest.class);
+
             // 註冊成功後返回 JWT token
-            String token = userService.signUp(userRequest);
+            String token = userService.signUp(userRequest, picture);
+
+            // 返回 token
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -70,6 +81,18 @@ public class UserController {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "User not found");
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // 新增上傳大頭貼 API
+    @PostMapping("/upload/profile-picture")
+    public ResponseEntity<?> uploadProfilePicture(@RequestParam("file") MultipartFile file) {
+        try {
+            // 更新用戶的圖片並返回圖片的 URL
+            String imageUrl = userService.updateProfilePicture(file);
+            return new ResponseEntity<>(Map.of("imageUrl", imageUrl), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 }

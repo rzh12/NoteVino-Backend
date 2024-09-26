@@ -49,6 +49,13 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
+    // 更新用戶的大頭貼 URL
+    @Override
+    public void updateUserProfilePicture(Integer userId, String imageUrl) {
+        String sql = "UPDATE users SET picture = ? WHERE user_id = ?";
+        jdbcTemplate.update(sql, imageUrl, userId);
+    }
+
     // 自定義 RowMapper，用來將查詢結果轉換為 User 物件
     private static class UserRowMapper implements RowMapper<User> {
         @Override
@@ -64,5 +71,6 @@ public class UserRepositoryImpl implements UserRepository {
             return user;
         }
     }
+
 }
 

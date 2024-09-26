@@ -1,11 +1,13 @@
 package com.rzh12.notevino.service.impl;
 
+import com.rzh12.notevino.dto.UserDetailDTO;
 import com.rzh12.notevino.dto.WineRequest;
 import com.rzh12.notevino.dto.WineResponse;
 import com.rzh12.notevino.repository.WineRepository;
 import com.rzh12.notevino.service.S3Service;
 import com.rzh12.notevino.service.WineService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,7 +26,7 @@ public class WineServiceImpl implements WineService {
     public void addNewWine(WineRequest wineRequest, MultipartFile image) {
         // 上傳圖片到 S3 並獲取 URL
         if (image != null && !image.isEmpty()) {
-            String imageUrl = s3Service.uploadFile(image);
+            String imageUrl = s3Service.uploadFile(image, "wine");
             wineRequest.setImageUrl(imageUrl);
         }
 
@@ -69,9 +71,9 @@ public class WineServiceImpl implements WineService {
     }
 
     private Integer getCurrentUserId() {
-        // 從安全上下文中獲取當前使用者ID
-        // 假設我們有 JWT 或 Spring Security 可以幫助取得 userId
-        return 1;  // 假設目前為用戶 ID 1
+        // 從 SecurityContext 中獲取當前用戶ID
+        UserDetailDTO currentUser = (UserDetailDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return currentUser.getUserId();
     }
 
 }

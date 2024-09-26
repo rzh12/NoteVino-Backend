@@ -1,15 +1,19 @@
 package com.rzh12.notevino.service.impl;
 
+import com.rzh12.notevino.dto.UserDetailDTO;
 import com.rzh12.notevino.dto.UserSigninRequest;
 import com.rzh12.notevino.dto.UserSignupRequest;
 import com.rzh12.notevino.dto.UserResponse;
 import com.rzh12.notevino.model.User;
 import com.rzh12.notevino.repository.UserRepository;
 import com.rzh12.notevino.security.JwtUtil;
+import com.rzh12.notevino.service.S3Service;
 import com.rzh12.notevino.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,10 +28,13 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
+    private S3Service s3Service;
+
+    @Autowired
     private JwtUtil jwtUtil;
 
     @Override
-    public String signUp(UserSignupRequest userRequest) {
+    public String signUp(UserSignupRequest userRequest, MultipartFile picture) {
         // 檢查電子郵件是否已經被註冊
         if (userRepository.existsByEmail(userRequest.getEmail())) {
             throw new RuntimeException("Email is already in use");
@@ -38,10 +45,13 @@ public class UserServiceImpl implements UserService {
         user.setProvider("LOCAL");
         user.setUsername(userRequest.getUsername());
         user.setEmail(userRequest.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(userRequest.getPassword()));  // 密碼加密
+        user.setPasswordHash(passwordEncoder.encode(userRequest.getPassword()));
 
-        // 設置 picture，如果未提供則設置為 null
-        user.setPicture(userRequest.getPicture() != null ? userRequest.getPicture() : null);
+        // 檢查是否有圖片上傳
+        if (picture != null && !picture.isEmpty()) {
+            String imageUrl = s3Service.uploadFile(picture, "avatar");
+            user.setPicture(imageUrl);  // 將圖片URL存儲到用戶資料中
+        }
 
         // 保存用戶到資料庫
         userRepository.save(user);
@@ -98,5 +108,30 @@ public class UserServiceImpl implements UserService {
         // 返回生成的 JWT token
         return jwtUtil.generateToken(claims, user.getEmail());
     }
+
+    @Override
+    public String updateProfilePicture(MultipartFile file) {
+        // 取得當前用戶ID
+        Integer userId = getCurrentUserId();
+
+        // 上傳圖片到 S3 並獲取 URL
+        if (file != null && !file.isEmpty()) {
+            String imageUrl = s3Service.uploadFile(file, "avatar");
+
+            // 更新資料庫中用戶的圖片 URL
+            userRepository.updateUserProfilePicture(userId, imageUrl);
+
+            return imageUrl;
+        } else {
+            throw new RuntimeException("Invalid file");
+        }
+    }
+
+    private Integer getCurrentUserId() {
+        // 從 SecurityContext 中獲取當前用戶
+        UserDetailDTO currentUser = (UserDetailDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return currentUser.getUserId();
+    }
+
 }
 

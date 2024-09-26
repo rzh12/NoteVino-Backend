@@ -37,7 +37,7 @@ public class S3ServiceImpl implements S3Service {
     }
 
     @Override
-    public String uploadFile(MultipartFile file) {
+    public String uploadFile(MultipartFile file, String folder) {
         // 取得原始檔名的副檔名
         String originalFilename = file.getOriginalFilename();
         String extension = "";
@@ -47,7 +47,8 @@ public class S3ServiceImpl implements S3Service {
             extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
 
-        String key = "uploads/" + UUID.randomUUID() + extension;  // 使用 UUID 生成唯一文件名
+        // 使用 UUID 生成唯一文件名，並指定資料夾
+        String key = folder + "/" + UUID.randomUUID() + extension;
 
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
