@@ -17,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -32,6 +34,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
     public String signUp(UserSignupRequest userRequest, MultipartFile picture) {
@@ -55,6 +59,8 @@ public class UserServiceImpl implements UserService {
 
         // 保存用戶到資料庫
         userRepository.save(user);
+
+        logger.info("Saved user with info: {}", user);
 
         // 註冊成功後，生成 JWT，並返回 token
         return generateJwtToken(user);

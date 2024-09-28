@@ -5,10 +5,14 @@ import com.rzh12.notevino.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
@@ -16,18 +20,29 @@ public class UserRepositoryImpl implements UserRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    // 儲存用戶資料
     @Override
     public void save(User user) {
         String sql = "INSERT INTO users (provider, username, email, password_hash, picture) VALUES (?, ?, ?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder(); // 用來獲取自動生成的 userId
 
-        jdbcTemplate.update(sql,
-                user.getProvider(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPasswordHash(),
-                user.getPicture() != null ? user.getPicture() : null  // 處理 picture 為 null 的情況
-        );
+        // 執行插入並獲取自動生成的 userId
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"user_id"});
+            ps.setString(1, user.getProvider());
+            ps.setString(2, user.getUsername());
+            ps.setString(3, user.getEmail());
+            ps.setString(4, user.getPasswordHash());
+            ps.setString(5, user.getPicture());
+            return ps;
+        }, keyHolder);
+
+        // 設置自動生成的 userId
+        user.setUserId(keyHolder.getKey().intValue());
+
+        // 重新查詢用戶資料，獲取 createdAt
+        String selectSql = "SELECT created_at FROM users WHERE user_id = ?";
+        LocalDateTime createdAt = jdbcTemplate.queryForObject(selectSql, LocalDateTime.class, user.getUserId());
+        user.setCreatedAt(createdAt);
     }
 
     // 檢查用戶 email 是否已存在
