@@ -14,7 +14,6 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class KnnService {
@@ -24,21 +23,24 @@ public class KnnService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public String recommendWinesByWineId(Long wineId, double rating, double price) {
-        // 查詢 wineId 的數據
-        String sql = "SELECT region, type FROM user_uploaded_wines WHERE wine_id = ?";
-        Map<String, Object> wineInfo = jdbcTemplate.queryForMap(sql, wineId);
+    @Autowired
+    private ClimateAnalysisService climateAnalysisService;
 
-        // 獲取 region 和 type
-        String region = (String) wineInfo.get("region");
-        String type = (String) wineInfo.get("type");
-
-        // 呼叫 k-NN 推薦系統，並傳遞 rating 和 price
-        return callPythonKnn(region, type, rating, price);
-    }
+//    public String recommendWinesByWineId(Long wineId, double rating, double price) {
+//        // 查詢 wineId 的數據
+//        String sql = "SELECT region, type FROM user_uploaded_wines WHERE wine_id = ?";
+//        Map<String, Object> wineInfo = jdbcTemplate.queryForMap(sql, wineId);
+//
+//        // 獲取 region 和 type
+//        String region = (String) wineInfo.get("region");
+//        String type = (String) wineInfo.get("type");
+//
+//        // 呼叫 k-NN 推薦系統，並傳遞 rating 和 price
+//        return callPythonKnn(region, type, rating, price, climateEncoding);
+//    }
 
     // 根據當前用戶 userId 進行推薦
-    public String recommendWinesByCurrentUser(double rating, double price) {
+    public String recommendWinesByCurrentUser(double rating, double price, boolean useRegion, String region) {
         // 獲取當前用戶ID
         Integer userId = getCurrentUserId();
 
@@ -52,12 +54,19 @@ public class KnnService {
             return null;  // 如果該使用者沒有上傳任何葡萄酒
         }
 
-        // 選擇出現次數最多的 region 和 type
-        String region = (String) userWines.get(0).get("region");
+        // 如果前端沒有傳入 region，則使用上傳次數最多的 region
+        if (region == null || region.isEmpty()) {
+            region = (String) userWines.get(0).get("region");
+        }
+
+        // 選擇出現次數最多的 type
         String type = (String) userWines.get(0).get("type");
 
-        // 將 region 和 type 傳遞給推薦算法，並使用使用者輸入的 rating 和 price
-        return callPythonKnn(region, type, rating, price);
+        // 調用 analyzeFavoriteClimateByUserId 來獲取當前用戶的氣候編碼
+        int climateEncoding = climateAnalysisService.analyzeFavoriteClimateByUserId(userId);
+
+        // 將 region、type 和 climateEncoding 傳遞給推薦算法
+        return callPythonKnn(region, type, rating, price, climateEncoding, useRegion);
     }
 
     // 從 SecurityContext 中獲取當前用戶ID
@@ -66,14 +75,19 @@ public class KnnService {
         return currentUser.getUserId();
     }
 
-    public String callPythonKnn(String region, String type, double rating, double price) {
+    public String callPythonKnn(String region, String type, double rating, double price, int climateEncoding, boolean useRegion) {
         try {
             // 建立符合 k-NN 需求的輸入資料
             Map<String, Object> inputData = new HashMap<>();
-            inputData.put("region", region);
+
+            // 根據 useRegion 參數來決定是否包括 region
+            if (useRegion) {
+                inputData.put("region", region);
+            }
+
             inputData.put("rating", rating);
             inputData.put("price", price);
-            inputData.put("climate_encoding", null);
+            inputData.put("climate_encoding", climateEncoding);  // 新增 climate_encoding
             inputData.put("log_ratings_count", null);
             inputData.put("is_red", type.equalsIgnoreCase("Red") ? 1 : null);
             inputData.put("is_white", type.equalsIgnoreCase("White") ? 1 : null);
