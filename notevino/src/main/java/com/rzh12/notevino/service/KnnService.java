@@ -1,16 +1,20 @@
 package com.rzh12.notevino.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rzh12.notevino.dto.UserDetailDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class KnnService {
@@ -31,6 +35,35 @@ public class KnnService {
 
         // 呼叫 k-NN 推薦系統，並傳遞 rating 和 price
         return callPythonKnn(region, type, rating, price);
+    }
+
+    // 根據當前用戶 userId 進行推薦
+    public String recommendWinesByCurrentUser(double rating, double price) {
+        // 獲取當前用戶ID
+        Integer userId = getCurrentUserId();
+
+        // 查詢 userId 上傳的所有葡萄酒資料，統計 region 和 type 出現次數
+        String sql = "SELECT region, type, COUNT(*) AS count " +
+                "FROM user_uploaded_wines WHERE user_id = ? AND is_deleted = 0 " +
+                "GROUP BY region, type ORDER BY count DESC";
+        List<Map<String, Object>> userWines = jdbcTemplate.queryForList(sql, userId);
+
+        if (userWines.isEmpty()) {
+            return null;  // 如果該使用者沒有上傳任何葡萄酒
+        }
+
+        // 選擇出現次數最多的 region 和 type
+        String region = (String) userWines.get(0).get("region");
+        String type = (String) userWines.get(0).get("type");
+
+        // 將 region 和 type 傳遞給推薦算法，並使用使用者輸入的 rating 和 price
+        return callPythonKnn(region, type, rating, price);
+    }
+
+    // 從 SecurityContext 中獲取當前用戶ID
+    private Integer getCurrentUserId() {
+        UserDetailDTO currentUser = (UserDetailDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return currentUser.getUserId();
     }
 
     public String callPythonKnn(String region, String type, double rating, double price) {

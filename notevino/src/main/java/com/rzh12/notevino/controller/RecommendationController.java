@@ -39,4 +39,23 @@ public class RecommendationController {
         // 返回 JSON 格式的推薦結果
         return ResponseEntity.ok(recommendationList);  // 200 OK
     }
+
+    // 根據使用者進行推薦
+    @GetMapping("/user/recommendations")
+    public ResponseEntity<List<Map<String, Object>>> recommendWinesByUser(
+            @RequestHeader(value = "rating", defaultValue = "4.3") double rating,
+            @RequestHeader(value = "price", defaultValue = "5000") double price) throws IOException {
+
+        // 調用 knnService 來進行根據 userId 推薦
+        String recommendations = knnService.recommendWinesByCurrentUser(rating, price);
+
+        if (recommendations == null || recommendations.isEmpty()) {
+            return ResponseEntity.noContent().build();  // 204 No Content
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, Object>> recommendationList = objectMapper.readValue(recommendations, new TypeReference<List<Map<String, Object>>>() {});
+
+        return ResponseEntity.ok(recommendationList);  // 200 OK
+    }
 }
