@@ -14,4 +14,6 @@ public interface WineService {
     boolean updateWine(Integer wineId, WineRequest wineRequest);
 
     boolean deleteWine(Integer wineId);
+
+    List<WineResponse> searchWinesByName(String query);
 }

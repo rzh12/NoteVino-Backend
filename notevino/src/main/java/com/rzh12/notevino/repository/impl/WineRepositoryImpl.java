@@ -68,4 +68,20 @@ public class WineRepositoryImpl implements WineRepository {
         String sql = "UPDATE user_uploaded_wines SET is_deleted = 1 WHERE wine_id = ?";
         jdbcTemplate.update(sql, wineId);
     }
+
+    @Override
+    public List<WineResponse> searchWinesByNameAndUserId(String query, Integer userId) {
+        String sql = "SELECT wine_id, name, region, type, vintage, image_url FROM user_uploaded_wines WHERE name LIKE ? AND user_id = ? AND is_deleted = 0";
+        String searchQuery = "%" + query + "%";
+        return jdbcTemplate.query(sql, new Object[]{searchQuery, userId}, (rs, rowNum) ->
+                new WineResponse(
+                        rs.getInt("wine_id"),
+                        rs.getString("name"),
+                        rs.getString("region"),
+                        rs.getString("type"),
+                        rs.getInt("vintage"),
+                        rs.getString("image_url")
+                )
+        );
+    }
 }

@@ -87,4 +87,18 @@ public class WineController {
         }
     }
 
+    // 搜尋葡萄酒根據名稱
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse> searchWines(@RequestParam("query") String query) {
+        List<WineResponse> searchResults = wineService.searchWinesByName(query);
+
+        if (searchResults.isEmpty()) {
+            ApiResponse<List<WineResponse>> response = new ApiResponse<>(true, "No wines found.", null);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+        }
+
+        ApiResponse response = new ApiResponse(true, "Wines retrieved successfully!", searchResults);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 }

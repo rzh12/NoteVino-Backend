@@ -15,4 +15,6 @@ public interface WineRepository {
     void updateWine(Integer wineId, WineRequest wineRequest);
 
     void softDeleteWineById(Integer wineId);
+
+    List<WineResponse> searchWinesByNameAndUserId(String query, Integer userId);
 }

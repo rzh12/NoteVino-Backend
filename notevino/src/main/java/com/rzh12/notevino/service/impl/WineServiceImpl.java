@@ -70,10 +70,17 @@ public class WineServiceImpl implements WineService {
         return false;
     }
 
+    @Override
+    public List<WineResponse> searchWinesByName(String query) {
+        Integer userId = getCurrentUserId();  // 獲取當前用戶ID
+        return wineRepository.searchWinesByNameAndUserId(query, userId);  // 根據名稱及用戶ID進行搜尋
+    }
+
     private Integer getCurrentUserId() {
         // 從 SecurityContext 中獲取當前用戶ID
         UserDetailDTO currentUser = (UserDetailDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return currentUser.getUserId();
     }
+
 
 }
