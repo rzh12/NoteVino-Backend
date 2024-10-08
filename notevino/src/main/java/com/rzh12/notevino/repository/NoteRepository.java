@@ -4,6 +4,8 @@ import com.rzh12.notevino.dto.FreeFormNoteRequest;
 import com.rzh12.notevino.dto.FreeFormNoteResponse;
 import com.rzh12.notevino.dto.WineDetailsResponse;
 
+import java.time.LocalDateTime;
+
 public interface NoteRepository {
     boolean existsWineByIdAndUserId(Integer wineId, Integer userId);
 
@@ -15,7 +17,7 @@ public interface NoteRepository {
 
     boolean existsNoteByIdAndUserId(Integer noteId, Integer userId);
 
-    boolean updateFreeFormNote(Integer noteId, FreeFormNoteRequest freeFormNoteRequest);
+    LocalDateTime updateFreeFormNote(Integer noteId, FreeFormNoteRequest freeFormNoteRequest);
 
     boolean deleteNoteById(Integer noteId);
 }

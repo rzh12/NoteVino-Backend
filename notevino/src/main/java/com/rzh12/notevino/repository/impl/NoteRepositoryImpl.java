@@ -39,11 +39,15 @@ public class NoteRepositoryImpl implements NoteRepository {
         String freeFormSql = "INSERT INTO freeform_notes (note_id, content) VALUES (?, ?)";
         jdbcTemplate.update(freeFormSql, noteId, freeFormNoteRequest.getContent());
 
-        // 查詢剛剛插入的 note 的 created_at
-        String getCreatedAtSql = "SELECT created_at FROM tasting_notes WHERE note_id = ?";
-        LocalDateTime createdAt = jdbcTemplate.queryForObject(getCreatedAtSql, new Object[]{noteId}, (rs, rowNum) -> rs.getTimestamp("created_at").toLocalDateTime());
-
-        return new FreeFormNoteResponse(noteId, freeFormNoteRequest.getContent(), createdAt);
+        String getTimestampsSql = "SELECT created_at, updated_at FROM freeform_notes WHERE note_id = ?";
+        return jdbcTemplate.queryForObject(getTimestampsSql, new Object[]{noteId}, (rs, rowNum) ->
+                new FreeFormNoteResponse(
+                        noteId,
+                        freeFormNoteRequest.getContent(),
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        rs.getTimestamp("updated_at").toLocalDateTime()
+                )
+        );
     }
 
     @Override
@@ -56,7 +60,7 @@ public class NoteRepositoryImpl implements NoteRepository {
     @Override
     public WineDetailsResponse getWineDetailsWithNotes(Integer wineId) {
         // 取得葡萄酒詳細資訊
-        String wineSql = "SELECT wine_id, name, region, type, vintage, image_url FROM user_uploaded_wines WHERE wine_id = ?";
+        String wineSql = "SELECT wine_id, name, region, type, vintage, image_url, created_at FROM user_uploaded_wines WHERE wine_id = ?";
         WineDetailsResponse wineDetails = jdbcTemplate.queryForObject(wineSql, new Object[]{wineId}, (rs, rowNum) ->
                 new WineDetailsResponse(
                         rs.getInt("wine_id"),
@@ -65,6 +69,7 @@ public class NoteRepositoryImpl implements NoteRepository {
                         rs.getString("type"),
                         rs.getInt("vintage"),
                         rs.getString("image_url"),
+                        rs.getTimestamp("created_at").toLocalDateTime(),  // 設置 created_at
                         null  // 筆記將會在後面取得
                 )
         );
@@ -88,9 +93,14 @@ public class NoteRepositoryImpl implements NoteRepository {
     private NoteResponse getNoteContent(Integer noteId, String noteType) {
         switch (noteType) {
             case "FreeForm":
-                String freeFormSql = "SELECT content, created_at FROM freeform_notes WHERE note_id = ?";
+                String freeFormSql = "SELECT content, created_at, updated_at FROM freeform_notes WHERE note_id = ?";
                 return jdbcTemplate.queryForObject(freeFormSql, new Object[]{noteId}, (rs, rowNum) ->
-                        new FreeFormNoteResponse(noteId, rs.getString("content"), rs.getTimestamp("created_at").toLocalDateTime())
+                        new FreeFormNoteResponse(
+                                noteId,
+                                rs.getString("content"),
+                                rs.getTimestamp("created_at").toLocalDateTime(),
+                                rs.getTimestamp("updated_at").toLocalDateTime()  // 包含 updated_at
+                        )
                 );
             default:
                 throw new IllegalArgumentException("Unknown note type: " + noteType);
@@ -105,10 +115,16 @@ public class NoteRepositoryImpl implements NoteRepository {
     }
 
     @Override
-    public boolean updateFreeFormNote(Integer noteId, FreeFormNoteRequest freeFormNoteRequest) {
+    public LocalDateTime updateFreeFormNote(Integer noteId, FreeFormNoteRequest freeFormNoteRequest) {
+        // 更新 freeform_notes 表中的內容
         String sql = "UPDATE freeform_notes SET content = ? WHERE note_id = ?";
         jdbcTemplate.update(sql, freeFormNoteRequest.getContent(), noteId);
-        return true;
+
+        // 查詢更新後的 updated_at 時間
+        String getUpdatedAtSql = "SELECT updated_at FROM freeform_notes WHERE note_id = ?";
+        return jdbcTemplate.queryForObject(getUpdatedAtSql, new Object[]{noteId}, (rs, rowNum) ->
+                rs.getTimestamp("updated_at").toLocalDateTime()
+        );
     }
 
     @Override

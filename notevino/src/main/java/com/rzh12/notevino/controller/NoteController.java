@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/api/wines")
 public class NoteController {
@@ -51,12 +53,19 @@ public class NoteController {
             @PathVariable Integer noteId,
             @RequestBody FreeFormNoteRequest freeFormNoteRequest) {
 
-        boolean noteUpdated = noteService.updateFreeFormNote(wineId, noteId, freeFormNoteRequest);
+        try {
+            // 更新 FreeForm 筆記並返回 updated_at 時間戳
+            LocalDateTime updatedAt = noteService.updateFreeFormNote(wineId, noteId, freeFormNoteRequest);
 
-        if (noteUpdated) {
-            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse(true, "Note updated successfully!", null));
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, "Wine or Note not found!", null));
+            // 如果更新成功，返回 200 OK 並包含 updated_at 時間戳
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, "Note updated successfully!", updatedAt));
+
+        } catch (IllegalArgumentException e) {
+            // 如果 wineId 或 noteId 不屬於當前用戶，返回 404 Not Found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
+        } catch (Exception e) {
+            // 捕捉其他可能的錯誤，返回 500 Internal Server Error
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(false, "An error occurred while updating the note.", null));
         }
     }
 

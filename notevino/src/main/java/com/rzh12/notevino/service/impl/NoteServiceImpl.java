@@ -40,15 +40,15 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public boolean updateFreeFormNote(Integer wineId, Integer noteId, FreeFormNoteRequest freeFormNoteRequest) {
+    public LocalDateTime updateFreeFormNote(Integer wineId, Integer noteId, FreeFormNoteRequest freeFormNoteRequest) {
         Integer userId = getCurrentUserId();  // 獲取當前使用者ID
 
         // 檢查該葡萄酒是否屬於當前使用者，並且筆記也屬於該使用者
         if (noteRepository.existsWineByIdAndUserId(wineId, userId) && noteRepository.existsNoteByIdAndUserId(noteId, userId)) {
-            // 更新 FreeForm 筆記
+            // 更新 FreeForm 筆記，並返回更新的時間
             return noteRepository.updateFreeFormNote(noteId, freeFormNoteRequest);
         }
-        return false;
+        throw new IllegalArgumentException("Wine or Note does not belong to the current user.");
     }
 
     @Override
