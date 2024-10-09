@@ -18,28 +18,6 @@ public class RecommendationController {
     @Autowired
     private KnnService knnService;
 
-//    @GetMapping("/{wineId}/recommendations")
-//    public ResponseEntity<List<Map<String, Object>>> recommendWines(
-//            @PathVariable Long wineId,
-//            @RequestHeader(value = "rating", defaultValue = "4.3") double rating,
-//            @RequestHeader(value = "price", defaultValue = "5000") double price) throws IOException {
-//
-//        // 調用 knnService 來進行推薦，並獲取推薦的 JSON 字串
-//        String recommendations = knnService.recommendWinesByWineId(wineId, rating, price);
-//
-//        // 如果沒有推薦結果
-//        if (recommendations == null || recommendations.isEmpty()) {
-//            return ResponseEntity.noContent().build();  // 204 No Content
-//        }
-//
-//        // 使用 ObjectMapper 將推薦結果的 JSON 字串轉換為 List<Map<String, Object>>
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        List<Map<String, Object>> recommendationList = objectMapper.readValue(recommendations, new TypeReference<List<Map<String, Object>>>() {});
-//
-//        // 返回 JSON 格式的推薦結果
-//        return ResponseEntity.ok(recommendationList);  // 200 OK
-//    }
-
     @GetMapping("/user/recommendations")
     public ResponseEntity<List<Map<String, Object>>> recommendWinesByUser(
             @RequestHeader(value = "rating", defaultValue = "4.3") double rating,
@@ -47,7 +25,7 @@ public class RecommendationController {
             @RequestHeader(value = "useRegion", defaultValue = "false") boolean useRegion,
             @RequestHeader(value = "region", required = false) String region) throws IOException {
 
-        // 調用 knnService 來進行根據 userId 推薦，並決定是否使用前端傳入的 region
+        // Call the knnService to make recommendations based on userId, and decide whether to use the region passed from the frontend
         String recommendations = knnService.recommendWinesByCurrentUser(rating, price, useRegion, region);
 
         if (recommendations == null || recommendations.isEmpty()) {

@@ -24,71 +24,63 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // 用戶註冊 API，註冊成功後返回 JWT Token
+    // User signup API, returns a JWT Token after successful registration
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(
-            @RequestParam("user") String userDataString,  // 接收 JSON 格式的資料
+            @RequestParam("user") String userDataString,
             @RequestParam(value = "picture", required = false) MultipartFile picture) throws IOException {
         try {
-            // 將 JSON 字符串轉換為 UserSignupRequest 對象
             ObjectMapper objectMapper = new ObjectMapper();
             UserSignupRequest userRequest = objectMapper.readValue(userDataString, UserSignupRequest.class);
 
-            // 註冊成功後返回 JWT token
             String token = userService.signUp(userRequest, picture);
 
-            // 返回 token
+            // Return token
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (RuntimeException e) {
-            // 返回結構化的錯誤信息
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
     }
 
-    // 用戶登入 API，登入成功後返回 JWT Token
+    // User login API, returns a JWT Token upon successful login
     @PostMapping("/signin")
     public ResponseEntity<?> signin(@RequestBody UserSigninRequest signinRequest) {
         try {
-            // 登入成功後返回 JWT token
             String token = userService.signin(signinRequest);
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (RuntimeException e) {
-            // 返回結構化的錯誤信息
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
         }
     }
 
-    // 根據用戶 email 查詢用戶信息
+    // Retrieve user information based on the user's email
     @GetMapping("/profile")
     public ResponseEntity<?> getUserProfile() {
         try {
-            // 從 SecurityContext 中獲取當前已驗證的用戶
+            // Retrieve the currently authenticated user from the SecurityContext
             UserDetailDTO currentUser = (UserDetailDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-            // 使用當前用戶的 email 查詢資料
             UserResponse userResponse = userService.findUserByEmail(currentUser.getEmail());
             return new ResponseEntity<>(userResponse, HttpStatus.OK);
         } catch (RuntimeException e) {
-            // 返回結構化的錯誤信息
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "User not found");
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
 
-    // 新增上傳大頭貼 API
+    // Create an API to upload profile avatars
     @PostMapping("/upload-avatar")
     public ResponseEntity<?> uploadAvatar(@RequestParam("picture") MultipartFile picture) {
         try {
-            // 更新用戶的圖片並返回圖片的 URL
             String imageUrl = userService.updateAvatar(picture);
             return new ResponseEntity<>(Map.of("imageUrl", imageUrl), HttpStatus.OK);
         } catch (RuntimeException e) {

@@ -24,33 +24,28 @@ public class WineServiceImpl implements WineService {
 
     @Override
     public void addNewWine(WineRequest wineRequest, MultipartFile image) {
-        // 上傳圖片到 S3 並獲取 URL
         if (image != null && !image.isEmpty()) {
             String imageUrl = s3Service.uploadFile(image, "wine");
             wineRequest.setImageUrl(imageUrl);
         }
 
-        // 將當前用戶ID設置到 wineRequest 中
-        Integer userId = getCurrentUserId(); // 假設你有一個取得當前用戶ID的方法
+        Integer userId = getCurrentUserId();
         wineRequest.setUserId(userId);
 
-        // 將資料儲存到資料庫
         wineRepository.saveWine(wineRequest);
     }
 
     @Override
     public List<WineResponse> getUserUploadedWines() {
-        Integer userId = getCurrentUserId(); // 假設你有一個取得用戶ID的方法
+        Integer userId = getCurrentUserId();
         return wineRepository.findAllByUserId(userId);
     }
 
     @Override
     public boolean updateWine(Integer wineId, WineRequest wineRequest) {
-        Integer userId = getCurrentUserId();  // 獲取當前使用者ID
+        Integer userId = getCurrentUserId();
 
-        // 檢查是否存在該葡萄酒、檢查該葡萄酒是否屬於當前使用者
         if (wineRepository.existsByIdAndUserId(wineId, userId)) {
-            // 更新葡萄酒信息，不能更新 imageUrl
             wineRepository.updateWine(wineId, wineRequest);
             return true;
         }
@@ -59,11 +54,9 @@ public class WineServiceImpl implements WineService {
 
     @Override
     public boolean deleteWine(Integer wineId) {
-        Integer userId = getCurrentUserId();  // 獲取當前使用者ID
+        Integer userId = getCurrentUserId();
 
-        // 檢查該葡萄酒是否屬於當前使用者
         if (wineRepository.existsByIdAndUserId(wineId, userId)) {
-            // 刪除葡萄酒和相關的品鑒筆記
             wineRepository.softDeleteWineById(wineId);
             return true;
         }
@@ -72,15 +65,13 @@ public class WineServiceImpl implements WineService {
 
     @Override
     public List<WineResponse> searchWinesByName(String query) {
-        Integer userId = getCurrentUserId();  // 獲取當前用戶ID
-        return wineRepository.searchWinesByNameAndUserId(query, userId);  // 根據名稱及用戶ID進行搜尋
+        Integer userId = getCurrentUserId();
+        return wineRepository.searchWinesByNameAndUserId(query, userId);
     }
 
     private Integer getCurrentUserId() {
-        // 從 SecurityContext 中獲取當前用戶ID
         UserDetailDTO currentUser = (UserDetailDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return currentUser.getUserId();
     }
-
 
 }

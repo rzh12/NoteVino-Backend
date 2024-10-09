@@ -14,20 +14,19 @@ public class OpenAIController {
     private TastingNoteGeneratorService tastingNoteGeneratorService;
 
     /**
-     * 生成一個 Tasting Note 範例
-     * @param wineId 在 Header 中傳入的葡萄酒ID
-     * @return 生成的 Tasting Note
+     * Generate a sample Tasting Note
+     * @param wineId The wine ID passed in the Header
+     * @return The generated Tasting Note
      */
     @GetMapping("/api/wines/generate-tasting-note")
     public ResponseEntity<String> generateTastingNote(@RequestHeader("wineId") Integer wineId) {
-        // 調用 service 來生成 Tasting Note
+
         String tastingNote = tastingNoteGeneratorService.generateTastingNoteExample(wineId);
 
-        // 返回結果
         if (tastingNote != null && !tastingNote.isEmpty()) {
             return ResponseEntity.ok(tastingNote);
         } else {
-            return ResponseEntity.noContent().build();  // 如果無法生成則返回 204 No Content
+            return ResponseEntity.noContent().build();  // 204 No Content
         }
     }
 }

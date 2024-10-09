@@ -11,9 +11,9 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("http://localhost:3000", "https://notevino.com", "https://d1z4whvwtiimo1.cloudfront.net")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 支持 OPTIONS 方法
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true) // 根據需求允許憑證
-                .maxAge(3600); // 增加 maxAge 減少預檢請求
+                .allowCredentials(true)
+                .maxAge(3600);
     }
 }

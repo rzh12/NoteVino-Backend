@@ -35,7 +35,7 @@ public class NoteController {
         }
     }
 
-    // 取得特定葡萄酒的詳細資訊和相關筆記
+    // Get detailed information on a particular wine and the associated notes
     @GetMapping("/{wineId}")
     public ResponseEntity<ApiResponse> getWineDetailsWithNotes(@PathVariable Integer wineId) {
         WineDetailsResponse wineDetails = noteService.getWineDetailsWithNotes(wineId);
@@ -54,22 +54,17 @@ public class NoteController {
             @RequestBody FreeFormNoteRequest freeFormNoteRequest) {
 
         try {
-            // 更新 FreeForm 筆記並返回 updated_at 時間戳
             LocalDateTime updatedAt = noteService.updateFreeFormNote(wineId, noteId, freeFormNoteRequest);
 
-            // 如果更新成功，返回 200 OK 並包含 updated_at 時間戳
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, "Note updated successfully!", updatedAt));
 
         } catch (IllegalArgumentException e) {
-            // 如果 wineId 或 noteId 不屬於當前用戶，返回 404 Not Found
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
         } catch (Exception e) {
-            // 捕捉其他可能的錯誤，返回 500 Internal Server Error
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(false, "An error occurred while updating the note.", null));
         }
     }
 
-    // 刪除特定葡萄酒的品飲筆記
     @DeleteMapping("/{wineId}/notes/{noteId}")
     public ResponseEntity<ApiResponse> deleteTastingNote(
             @PathVariable Integer wineId,

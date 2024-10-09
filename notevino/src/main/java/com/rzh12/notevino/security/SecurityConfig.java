@@ -28,17 +28,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())  // 關閉 CSRF，因為我們使用 JWT
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/signup", "/api/users/signin", "/api/wines/{wineId}", "/api/wines/search").permitAll()  // 允許未經認證的 API
+                        .requestMatchers("/api/users/signup", "/api/users/signin", "/api/wines/{wineId}", "/api/wines/search").permitAll()
                         .requestMatchers("/api/wines/upload", "/api/wines/{wineId}", "/api/wines/{wineId}/notes",
-                                "/api/wines/{wineId}/notes/{noteId}", "/api/users/profile", "/api/users/upload-avatar", "/api/wines/{wineId}/sat-note").authenticated()  // 需要認證的 API
-                        .anyRequest().permitAll()  // 允許其他 API
+                                "/api/wines/{wineId}/notes/{noteId}", "/api/users/profile", "/api/users/upload-avatar", "/api/wines/{wineId}/sat-note").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)  // 無狀態會話管理
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);  // 添加 JWT 過濾器
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -18,7 +18,7 @@ public class OpenAIClient {
     @Value("${openai.api.url}")
     private String apiUrl;
 
-    // 通用的 API 請求生成方法
+    // A general method for generating API requests.
     public String generateResponse(String systemPrompt, String userQuery, String assistantMessageContent) {
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(60, TimeUnit.SECONDS)
@@ -29,31 +29,29 @@ public class OpenAIClient {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            // 系統消息部分
+            // The system message section
             Map<String, Object> systemMessage = new HashMap<>();
             systemMessage.put("role", "system");
             systemMessage.put("content", systemPrompt);
 
-            // 使用者消息部分
+            // The user message section
             Map<String, Object> userMessage = new HashMap<>();
             userMessage.put("role", "user");
             userMessage.put("content", userQuery);
 
-            // 助手消息部分
+            // The assistant message section
             Map<String, Object> assistantMessage = new HashMap<>();
             assistantMessage.put("role", "assistant");
             assistantMessage.put("content", assistantMessageContent);
 
-            // 請求體
+            // Request Body
             Map<String, Object> requestBodyMap = new HashMap<>();
             requestBodyMap.put("model", "gpt-4o-mini");
             requestBodyMap.put("messages", new Object[]{systemMessage, userMessage, assistantMessage});
             requestBodyMap.put("max_tokens", 1000);
 
-            // 將請求體轉為JSON字串
             String requestBody = objectMapper.writeValueAsString(requestBodyMap);
 
-            // 建立請求
             RequestBody body = RequestBody.create(MediaType.parse("application/json"), requestBody);
             Request request = new Request.Builder()
                     .url(apiUrl)
@@ -61,7 +59,6 @@ public class OpenAIClient {
                     .addHeader("Authorization", "Bearer " + apiKey)
                     .build();
 
-            // 執行請求
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful() && response.body() != null) {
                     return response.body().string();

@@ -22,12 +22,11 @@ public class SatNoteRepositoryImpl implements SatNoteRepository {
 
     @Override
     public SatNoteResponse createSatNote(Integer wineId, Integer userId, SatNoteRequest satNoteRequest) {
-        // 檢查該酒是否屬於當前使用者
+
         if (!existsByWineIdAndUserId(wineId, userId)) {
             throw new IllegalArgumentException("User does not have permission to create a SAT note for this wine.");
         }
 
-        // 插入 sat_notes
         String satNoteSql = "INSERT INTO sat_notes (wine_id, user_id, sweetness, acidity, tannin, alcohol, body, flavour_intensity, finish, quality, potential_for_ageing) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(satNoteSql, wineId, userId, satNoteRequest.getSweetness(), satNoteRequest.getAcidity(),
@@ -35,7 +34,6 @@ public class SatNoteRepositoryImpl implements SatNoteRepository {
                 satNoteRequest.getFlavourIntensity(), satNoteRequest.getFinish(),
                 satNoteRequest.getQuality(), satNoteRequest.getPotentialForAgeing());
 
-        // 查詢剛剛插入的 SAT Note 內容
         String getSatNoteSql = "SELECT sweetness, acidity, tannin, alcohol, body, flavour_intensity, finish, quality, potential_for_ageing FROM sat_notes WHERE wine_id = ? AND user_id = ?";
         return jdbcTemplate.queryForObject(getSatNoteSql, new Object[]{wineId, userId}, (rs, rowNum) ->
                 new SatNoteResponse(
@@ -90,14 +88,4 @@ public class SatNoteRepositoryImpl implements SatNoteRepository {
                 )
         );
     }
-
-//    @Override
-//    public boolean deleteSatNoteByWineIdAndUserId(Integer wineId, Integer userId) {
-//        if (!existsByWineIdAndUserId(wineId, userId)) {
-//            throw new IllegalArgumentException("User does not have permission to delete this SAT note.");
-//        }
-//        String sql = "DELETE FROM sat_notes WHERE wine_id = ? AND user_id = ?";
-//        jdbcTemplate.update(sql, wineId, userId);
-//        return true;
-//    }
 }

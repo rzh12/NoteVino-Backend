@@ -32,13 +32,13 @@ public class S3ServiceImpl implements S3Service {
     public void init() {
         this.s3Client = S3Client.builder()
                 .region(Region.of(region))
-                .credentialsProvider(DefaultCredentialsProvider.create())  // 使用預設憑證提供者鏈
+                .credentialsProvider(DefaultCredentialsProvider.create())
                 .build();
     }
 
     @Override
     public String uploadFile(MultipartFile file, String folder) {
-        // 取得原始檔名的副檔名
+
         String originalFilename = file.getOriginalFilename();
         String extension = "";
         String contentType = file.getContentType();
@@ -47,7 +47,7 @@ public class S3ServiceImpl implements S3Service {
             extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
 
-        // 使用 UUID 生成唯一文件名，並指定資料夾
+        // Generate a unique filename using UUID and specify the folder
         String key = folder + "/" + UUID.randomUUID() + extension;
 
         try {
@@ -59,7 +59,7 @@ public class S3ServiceImpl implements S3Service {
 
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
-            return baseUrl + key; // 返回 S3 上的文件 URL
+            return baseUrl + key;
         } catch (S3Exception e) {
             throw new RuntimeException("Failed to upload file to S3", e);
         } catch (Exception e) {

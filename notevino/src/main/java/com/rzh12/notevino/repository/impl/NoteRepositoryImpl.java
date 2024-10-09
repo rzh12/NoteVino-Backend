@@ -27,15 +27,13 @@ public class NoteRepositoryImpl implements NoteRepository {
 
     @Override
     public FreeFormNoteResponse createFreeFormNoteAndReturnDetails(Integer wineId, Integer userId, FreeFormNoteRequest freeFormNoteRequest) {
-        // 插入 tasting_notes
+
         String noteSql = "INSERT INTO tasting_notes (wine_id, user_id, note_type) VALUES (?, ?, 'FreeForm')";
         jdbcTemplate.update(noteSql, wineId, userId);
 
-        // 取得剛剛插入的 note_id
         String getNoteIdSql = "SELECT LAST_INSERT_ID()";
         Integer noteId = jdbcTemplate.queryForObject(getNoteIdSql, Integer.class);
 
-        // 插入 freeform_notes
         String freeFormSql = "INSERT INTO freeform_notes (note_id, content) VALUES (?, ?)";
         jdbcTemplate.update(freeFormSql, noteId, freeFormNoteRequest.getContent());
 
@@ -59,7 +57,7 @@ public class NoteRepositoryImpl implements NoteRepository {
 
     @Override
     public WineDetailsResponse getWineDetailsWithNotes(Integer wineId) {
-        // 取得葡萄酒詳細資訊
+
         String wineSql = "SELECT wine_id, name, region, type, vintage, image_url, created_at FROM user_uploaded_wines WHERE wine_id = ?";
         WineDetailsResponse wineDetails = jdbcTemplate.queryForObject(wineSql, new Object[]{wineId}, (rs, rowNum) ->
                 new WineDetailsResponse(
@@ -69,27 +67,23 @@ public class NoteRepositoryImpl implements NoteRepository {
                         rs.getString("type"),
                         rs.getInt("vintage"),
                         rs.getString("image_url"),
-                        rs.getTimestamp("created_at").toLocalDateTime(),  // 設置 created_at
-                        null  // 筆記將會在後面取得
+                        rs.getTimestamp("created_at").toLocalDateTime(),
+                        null  // The notes will be retrieved later
                 )
         );
 
-        // 查詢 tasting_notes 表取得所有類型的筆記
         String noteTypeSql = "SELECT note_id, note_type FROM tasting_notes WHERE wine_id = ?";
         List<NoteResponse> allNotes = jdbcTemplate.query(noteTypeSql, new Object[]{wineId}, (rs, rowNum) -> {
             Integer noteId = rs.getInt("note_id");
             String noteType = rs.getString("note_type");
 
-            // 根據 note_type 查詢對應的筆記內容
             return getNoteContent(noteId, noteType);
         });
 
-        // 設置筆記
         wineDetails.setNotes(allNotes);
         return wineDetails;
     }
 
-    // 動態查詢不同格式的筆記內容
     private NoteResponse getNoteContent(Integer noteId, String noteType) {
         switch (noteType) {
             case "FreeForm":
@@ -99,7 +93,7 @@ public class NoteRepositoryImpl implements NoteRepository {
                                 noteId,
                                 rs.getString("content"),
                                 rs.getTimestamp("created_at").toLocalDateTime(),
-                                rs.getTimestamp("updated_at").toLocalDateTime()  // 包含 updated_at
+                                rs.getTimestamp("updated_at").toLocalDateTime()
                         )
                 );
             default:
@@ -116,11 +110,10 @@ public class NoteRepositoryImpl implements NoteRepository {
 
     @Override
     public LocalDateTime updateFreeFormNote(Integer noteId, FreeFormNoteRequest freeFormNoteRequest) {
-        // 更新 freeform_notes 表中的內容
+
         String sql = "UPDATE freeform_notes SET content = ? WHERE note_id = ?";
         jdbcTemplate.update(sql, freeFormNoteRequest.getContent(), noteId);
 
-        // 查詢更新後的 updated_at 時間
         String getUpdatedAtSql = "SELECT updated_at FROM freeform_notes WHERE note_id = ?";
         return jdbcTemplate.queryForObject(getUpdatedAtSql, new Object[]{noteId}, (rs, rowNum) ->
                 rs.getTimestamp("updated_at").toLocalDateTime()
