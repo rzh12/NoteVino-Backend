@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ApiResponse<T> {  // Use the generic type T to support different types of data
+public class ApiResponse<T> {  // 使用泛型 T 來支援不同類型的 data
     private boolean success;
     private String message;
-    private T data;
+    private T data;  // 新增 data 字段，使用泛型 T 來支援不同類型的資料
 }

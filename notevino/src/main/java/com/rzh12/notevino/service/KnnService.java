@@ -26,36 +26,50 @@ public class KnnService {
     @Autowired
     private ClimateAnalysisService climateAnalysisService;
 
-    // Generate recommendations using the current user's userId
-    public String recommendWinesByCurrentUser(double rating, double price, boolean useRegion, String region) {
+//    public String recommendWinesByWineId(Long wineId, double rating, double price) {
+//        // 查詢 wineId 的數據
+//        String sql = "SELECT region, type FROM user_uploaded_wines WHERE wine_id = ?";
+//        Map<String, Object> wineInfo = jdbcTemplate.queryForMap(sql, wineId);
+//
+//        // 獲取 region 和 type
+//        String region = (String) wineInfo.get("region");
+//        String type = (String) wineInfo.get("type");
+//
+//        // 呼叫 k-NN 推薦系統，並傳遞 rating 和 price
+//        return callPythonKnn(region, type, rating, price, climateEncoding);
+//    }
 
+    // 根據當前用戶 userId 進行推薦
+    public String recommendWinesByCurrentUser(double rating, double price, boolean useRegion, String region) {
+        // 獲取當前用戶ID
         Integer userId = getCurrentUserId();
 
-        // Fetch all wine information uploaded by the userId and calculate the frequency of region and type
+        // 查詢 userId 上傳的所有葡萄酒資料，統計 region 和 type 出現次數
         String sql = "SELECT region, type, COUNT(*) AS count " +
                 "FROM user_uploaded_wines WHERE user_id = ? AND is_deleted = 0 " +
                 "GROUP BY region, type ORDER BY count DESC";
         List<Map<String, Object>> userWines = jdbcTemplate.queryForList(sql, userId);
 
         if (userWines.isEmpty()) {
-            return null;
+            return null;  // 如果該使用者沒有上傳任何葡萄酒
         }
 
-        // If no region is provided by the frontend, use the most frequently uploaded region
+        // 如果前端沒有傳入 region，則使用上傳次數最多的 region
         if (region == null || region.isEmpty()) {
             region = (String) userWines.get(0).get("region");
         }
 
-        // Select the most frequently occurring type
+        // 選擇出現次數最多的 type
         String type = (String) userWines.get(0).get("type");
 
-        // Call analyzeFavoriteClimateByUserId to retrieve the current user's climate code
+        // 調用 analyzeFavoriteClimateByUserId 來獲取當前用戶的氣候編碼
         int climateEncoding = climateAnalysisService.analyzeFavoriteClimateByUserId(userId);
 
-        // Pass region, type, and climateEncoding to the recommendation algorithm
+        // 將 region、type 和 climateEncoding 傳遞給推薦算法
         return callPythonKnn(region, type, rating, price, climateEncoding, useRegion);
     }
 
+    // 從 SecurityContext 中獲取當前用戶ID
     private Integer getCurrentUserId() {
         UserDetailDTO currentUser = (UserDetailDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return currentUser.getUserId();
@@ -63,16 +77,17 @@ public class KnnService {
 
     public String callPythonKnn(String region, String type, double rating, double price, int climateEncoding, boolean useRegion) {
         try {
+            // 建立符合 k-NN 需求的輸入資料
             Map<String, Object> inputData = new HashMap<>();
 
-            // Determine if the region should be included according to the useRegion parameter
+            // 根據 useRegion 參數來決定是否包括 region
             if (useRegion) {
                 inputData.put("region", region);
             }
 
             inputData.put("rating", rating);
             inputData.put("price", price);
-            inputData.put("climate_encoding", climateEncoding);
+            inputData.put("climate_encoding", climateEncoding);  // 新增 climate_encoding
             inputData.put("log_ratings_count", null);
             inputData.put("is_red", type.equalsIgnoreCase("Red") ? 1 : null);
             inputData.put("is_white", type.equalsIgnoreCase("White") ? 1 : null);
@@ -81,20 +96,23 @@ public class KnnService {
             inputData.put("is_dessert", type.equalsIgnoreCase("Dessert") ? 1 : null);
             inputData.put("is_fortified", type.equalsIgnoreCase("Fortified") ? 1 : null);
 
+            // 將 inputData 轉換為 JSON 字串
             ObjectMapper objectMapper = new ObjectMapper();
             String wineRequestJson = objectMapper.writeValueAsString(inputData);
 
+            // 日誌記錄傳遞給 Python 的資料
             logger.info("傳遞給 Python 的資料: {}", wineRequestJson);
 
-            // Use docker exec to invoke the knn-mysql-sb.py script inside the Python container, passing a JSON string as a parameter
+            // 使用 docker exec 調用 Python 容器內的 knn-mysql-sb.py 腳本，傳遞 JSON 字串作為參數
             String[] cmd = {
                     "docker", "exec", "-i", "nv-network-python-1", "python3", "/usr/src/app/knn-mysql-sb.py", wineRequestJson
             };
 
+            // 建立 ProcessBuilder 來執行命令
             ProcessBuilder processBuilder = new ProcessBuilder(cmd);
             Process process = processBuilder.start();
 
-            // Read the output result of the Python script
+            // 讀取 Python 腳本的輸出結果
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringBuilder result = new StringBuilder();
             String line;
@@ -102,10 +120,13 @@ public class KnnService {
                 result.append(line);
             }
 
+            // 等待進程結束
             process.waitFor();
 
+            // 日誌記錄 Python k-NN 的結果
             logger.info("Python k-NN 結果: {}", result.toString());
 
+            // 返回 Python 的推薦結果
             return result.toString();
 
         } catch (Exception e) {

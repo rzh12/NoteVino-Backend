@@ -18,6 +18,6 @@ public class WineDetailsResponse {
     private Integer vintage;
     private String imageUrl;
     private LocalDateTime createdAt;
-    private List<NoteResponse> notes;  // Use NoteResponse interface
+    private List<NoteResponse> notes;  // 使用 NoteResponse interface
 }
 

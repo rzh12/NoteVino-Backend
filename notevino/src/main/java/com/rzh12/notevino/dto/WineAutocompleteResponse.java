@@ -1,17 +1,14 @@
 package com.rzh12.notevino.dto;
 
-import lombok.Data;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class WineRequest {
-    private Integer userId;
+public class WineAutocompleteResponse {
     private String name;
     private String region;
-    private String type;  // ENUM
-    private Integer vintage;
-    private String imageUrl; // S3
+    private Double score;
 }

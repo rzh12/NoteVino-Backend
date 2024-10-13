@@ -15,15 +15,15 @@ public class TastingNoteGeneratorService {
     private NoteService noteService;
 
     /**
-     * Generate a sample Tasting Note based on the wine details
-     * @param wineId The ID of the wine
-     * @return The generated sample Tasting Note
+     * 根據葡萄酒的詳細資訊生成 Tasting Note 範例
+     * @param wineId 葡萄酒的ID
+     * @return 生成的 Tasting Note 範例
      */
     public String generateTastingNoteExample(Integer wineId) {
-        // Retrieve wine details using getWineDetailsWithNotes
+        // 使用 getWineDetailsWithNotes 取得葡萄酒詳細資訊
         WineDetailsResponse wineDetails = noteService.getWineDetailsWithNotes(wineId);
 
-        // Construct the prompt required for the OpenAI API
+        // 構建 OpenAI API 所需的提示詞
         String systemPrompt = "You are a professional sommelier. Based on the following wine information, generate a sample tasting note that could help a beginner learn how to write one.";
         String userQuery = "Here is the wine information: \n"
                 + "Name: " + wineDetails.getName() + "\n"
@@ -33,7 +33,7 @@ public class TastingNoteGeneratorService {
 
         String assistantMessageContent = "Please generate a sample tasting note based on the wine information above. The note should focus on flavor, aroma, texture, and any other characteristics typically found in professional tasting notes.";
 
-        // Call OpenAIClient to generate a sample Tasting Note
+        // 調用 OpenAIClient 來生成 Tasting Note 範例
         return openAIClient.generateResponse(systemPrompt, userQuery, assistantMessageContent);
     }
 }

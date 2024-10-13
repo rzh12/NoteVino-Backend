@@ -6,10 +6,13 @@ import com.rzh12.notevino.dto.UserResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
+    // 用戶註冊，返回 JWT token
     String signUp(UserSignupRequest userRequest, MultipartFile picture);
 
+    // 用戶登入，返回 JWT token
     String signin(UserSigninRequest signinRequest);
 
+    // 根據 email 查詢用戶信息
     UserResponse findUserByEmail(String email);
 
     String updateAvatar(MultipartFile file);
