@@ -49,10 +49,12 @@ public class RedisConfig {
         LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
                 .clientOptions(clientOptions)
                 .commandTimeout(Duration.ofMillis(timeout))
+//                .useSsl()
                 .build();
 
+
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(redisHost, redisPort);
-//        redisStandaloneConfiguration.setPassword(redisPassword);
+        redisStandaloneConfiguration.setPassword(redisPassword);
 
         System.out.println("Successfully connected to Redis at host: " + redisHost);
 
