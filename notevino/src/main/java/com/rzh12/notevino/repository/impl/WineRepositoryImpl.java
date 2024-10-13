@@ -102,42 +102,55 @@ public class WineRepositoryImpl implements WineRepository {
     public void updateWineScore(String wineName, String region, Double currentScore) {
         String sql = "UPDATE user_uploaded_wines SET score = score + ? WHERE name = ? AND region = ?";
 
-        // 執行 SQL，將當前 score 增加到資料庫中
         jdbcTemplate.update(sql, currentScore, wineName, region);
     }
 
     @Override
     public List<WineAutocompleteResponse> autocompleteWines(String query) {
-        // 使用 DISTINCT 去重，只返回唯一名稱的酒款
-        String sql = "SELECT DISTINCT name, region, MAX(score) as score " +
-                "FROM user_uploaded_wines " +
-                "WHERE (name LIKE ? OR region LIKE ?) AND is_deleted = 0 " +
-                "GROUP BY name, region " +
-                "ORDER BY score DESC LIMIT 10";
+        String sql = "SELECT uw.wine_id, uw.name, uw.region, uw.score " +
+                "FROM user_uploaded_wines uw " +
+                "JOIN ( " +
+                "    SELECT name, region, MAX(score) AS max_score, MIN(wine_id) AS min_wine_id " +
+                "    FROM user_uploaded_wines " +
+                "    WHERE (name LIKE ? OR region LIKE ?) AND is_deleted = 0 " +
+                "    GROUP BY name, region " +
+                ") max_wines ON uw.name = max_wines.name " +
+                "AND uw.region = max_wines.region " +
+                "AND uw.score = max_wines.max_score " +
+                "AND uw.wine_id = max_wines.min_wine_id " +
+                "ORDER BY uw.score DESC, uw.wine_id ASC LIMIT 10";
 
         String searchQuery = "%" + query + "%";
 
         return jdbcTemplate.query(sql, new Object[]{searchQuery, searchQuery}, (rs, rowNum) ->
                 new WineAutocompleteResponse(
+                        rs.getInt("wine_id"),
                         rs.getString("name"),
                         rs.getString("region"),
                         rs.getDouble("score")
                 )
         );
     }
+
 
     @Override
     public List<WineAutocompleteResponse> getTopWines() {
-        // 使用 DISTINCT 選取唯一名稱的酒款，並取得該酒款的最高分
-        String sql = "SELECT name, region, MAX(score) as score " +
-                "FROM user_uploaded_wines " +
-                "WHERE is_deleted = 0 " +
-                "GROUP BY name, region " +
-                "ORDER BY score DESC LIMIT 10";
+        String sql = "SELECT uw.wine_id, uw.name, uw.region, uw.score " +
+                "FROM user_uploaded_wines uw " +
+                "JOIN ( " +
+                "    SELECT name, region, MAX(score) AS max_score, MIN(wine_id) AS min_wine_id " +
+                "    FROM user_uploaded_wines " +
+                "    WHERE is_deleted = 0 " +
+                "    GROUP BY name, region " +
+                ") max_wines ON uw.name = max_wines.name " +
+                "AND uw.region = max_wines.region " +
+                "AND uw.score = max_wines.max_score " +
+                "AND uw.wine_id = max_wines.min_wine_id " +
+                "ORDER BY uw.score DESC, uw.wine_id ASC LIMIT 10";
 
-        // 查詢結果並映射到 WineAutocompleteResponse DTO
         return jdbcTemplate.query(sql, (rs, rowNum) ->
                 new WineAutocompleteResponse(
+                        rs.getInt("wine_id"),
                         rs.getString("name"),
                         rs.getString("region"),
                         rs.getDouble("score")
@@ -145,9 +158,10 @@ public class WineRepositoryImpl implements WineRepository {
         );
     }
 
+
     @Override
     public Double getScore(String wineName, String region) {
-        String sql = "SELECT MAX(score) FROM user_uploaded_wines WHERE name = ? AND region = ?";
+        String sql = "SELECT MAX(score) FROM user_uploaded_wines WHERE name = ? AND region = ? ORDER BY score DESC, wine_id ASC LIMIT 1";
         return jdbcTemplate.queryForObject(sql, new Object[]{wineName, region}, Double.class);
     }
 }

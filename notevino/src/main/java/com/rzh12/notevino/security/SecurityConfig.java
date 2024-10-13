@@ -30,8 +30,8 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())  // 關閉 CSRF，因為我們使用 JWT
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/signup", "/api/users/signin", "/api/wines/{wineId}", "/api/wines/search", "/api/wines/autocomplete").permitAll()  // 允許未經認證的 API
-                        .requestMatchers("/api/wines/upload", "/api/wines/{wineId}", "/api/wines/{wineId}/notes",
+                        .requestMatchers("/api/users/signup", "/api/users/signin", "/api/wines/{wineId}", "/api/wines/search", "/api/wines/autocomplete", "/api/wines/{wineId}").permitAll()  // 允許未經認證的 API
+                        .requestMatchers("/api/wines/upload", "/api/wines/{wineId}/notes",
                                 "/api/wines/{wineId}/notes/{noteId}", "/api/users/profile", "/api/users/upload-avatar", "/api/wines/{wineId}/sat-note").authenticated()  // 需要認證的 API
                         .anyRequest().permitAll()  // 允許其他 API
                 )

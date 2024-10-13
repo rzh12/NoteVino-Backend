@@ -39,7 +39,7 @@ public class AutoCompleteCacheService {
                 String wineName = parts[0];
                 String region = parts[1];
 
-                // 將分數寫入資料庫
+                // 將分數寫入資料庫，針對所有符合 name 和 region 的酒款
                 wineRepository.updateWineScore(wineName, region, currentScore);
             }
 
@@ -60,9 +60,9 @@ public class AutoCompleteCacheService {
         // 清除 Redis 中舊的 autocomplete:read 快取
         redisTemplate.delete("autocomplete:read");
 
-        // 將最新的分數寫入 Redis
+        // 將最新的分數寫入 Redis，使用 wineId|wineName|region 格式
         for (WineAutocompleteResponse wine : wineList) {
-            String redisValue = String.format("%s|%s", wine.getName(), wine.getRegion());
+            String redisValue = String.format("%d|%s|%s", wine.getWineId(), wine.getName(), wine.getRegion());
             redisTemplate.opsForZSet().add("autocomplete:read", redisValue, wine.getScore());
         }
 

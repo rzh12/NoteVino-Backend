@@ -90,17 +90,20 @@ public class WineServiceImpl implements WineService {
                 return cachedResults.stream()
                         .map(result -> {
                             String[] parts = result.toString().split("\\|");
-                            return new WineAutocompleteResponse(parts[0], parts[1], getScore(parts[0], parts[1]));
+                            Integer wineId = Integer.parseInt(parts[0]);
+                            String wineName = parts[1];
+                            String region = parts[2];
+                            return new WineAutocompleteResponse(wineId, wineName, region, getScore(wineName, region));
                         })
                         .limit(10)
                         .collect(Collectors.toList());
             } else {
                 // 如果 Redis 中沒有數據，從資料庫查詢
-                List<WineAutocompleteResponse> dbResults = wineRepository.getTopWines();  // 使用已有的 Repository 方法
+                List<WineAutocompleteResponse> dbResults = wineRepository.getTopWines();
 
                 // 更新 Redis
                 for (WineAutocompleteResponse result : dbResults) {
-                    String redisValue = String.format("%s|%s", result.getName(), result.getRegion());
+                    String redisValue = String.format("%d|%s|%s", result.getWineId(), result.getName(), result.getRegion());
                     redisTemplate.opsForZSet().add("autocomplete:read", redisValue, result.getScore());
                 }
 
@@ -122,7 +125,10 @@ public class WineServiceImpl implements WineService {
             filteredResults = cachedResults.stream()
                     .map(result -> {
                         String[] parts = result.toString().split("\\|");
-                        return new WineAutocompleteResponse(parts[0], parts[1], getScore(parts[0], parts[1]));
+                        Integer wineId = Integer.parseInt(parts[0]);
+                        String wineName = parts[1];
+                        String region = parts[2];
+                        return new WineAutocompleteResponse(wineId, wineName, region, getScore(wineName, region));
                     })
                     .filter(response -> response.getName().toLowerCase().contains(searchQuery) ||
                             response.getRegion().toLowerCase().contains(searchQuery))
@@ -140,8 +146,7 @@ public class WineServiceImpl implements WineService {
             // 從資料庫結果中補充剩餘的部分
             List<WineAutocompleteResponse> additionalResults = dbResults.stream()
                     .filter(response -> filteredResults.stream().noneMatch(existing ->
-                            existing.getName().equalsIgnoreCase(response.getName()) &&
-                                    existing.getRegion().equalsIgnoreCase(response.getRegion())))
+                            existing.getWineId().equals(response.getWineId())))
                     .limit(remainingCount)
                     .collect(Collectors.toList());
 
@@ -149,7 +154,7 @@ public class WineServiceImpl implements WineService {
 
             // 將從資料庫查詢的結果更新到 Redis 中
             for (WineAutocompleteResponse result : additionalResults) {
-                String redisValue = String.format("%s|%s", result.getName(), result.getRegion());
+                String redisValue = String.format("%d|%s|%s", result.getWineId(), result.getName(), result.getRegion());
                 redisTemplate.opsForZSet().add("autocomplete:read", redisValue, result.getScore());
             }
         }

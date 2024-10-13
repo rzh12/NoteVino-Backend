@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WineAutocompleteResponse {
+    private Integer wineId;
     private String name;
     private String region;
     private Double score;
