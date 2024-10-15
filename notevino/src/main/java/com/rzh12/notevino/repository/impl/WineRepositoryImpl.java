@@ -44,7 +44,7 @@ public class WineRepositoryImpl implements WineRepository {
 
     @Override
     public List<WineResponse> findAllByUserId(Integer userId) {
-        String sql = "SELECT wine_id, name, region, type, vintage, image_url FROM user_uploaded_wines WHERE user_id = ? AND is_deleted = 0";
+        String sql = "SELECT wine_id, name, region, type, vintage, image_url, created_at FROM user_uploaded_wines WHERE user_id = ? AND is_deleted = 0";
         return jdbcTemplate.query(sql, new Object[]{userId}, (rs, rowNum) ->
                 new WineResponse(
                         rs.getInt("wine_id"),
@@ -52,7 +52,8 @@ public class WineRepositoryImpl implements WineRepository {
                         rs.getString("region"),
                         rs.getString("type"),
                         rs.getInt("vintage"),
-                        rs.getString("image_url")
+                        rs.getString("image_url"),
+                        rs.getTimestamp("created_at").toLocalDateTime()
                 )
         );
     }
@@ -84,7 +85,7 @@ public class WineRepositoryImpl implements WineRepository {
 
     @Override
     public List<WineResponse> searchWinesByNameAndUserId(String query, Integer userId) {
-        String sql = "SELECT wine_id, name, region, type, vintage, image_url FROM user_uploaded_wines WHERE name LIKE ? AND user_id = ? AND is_deleted = 0";
+        String sql = "SELECT wine_id, name, region, type, vintage, image_url, created_at FROM user_uploaded_wines WHERE name LIKE ? AND user_id = ? AND is_deleted = 0";
         String searchQuery = "%" + query + "%";
         return jdbcTemplate.query(sql, new Object[]{searchQuery, userId}, (rs, rowNum) ->
                 new WineResponse(
@@ -93,7 +94,8 @@ public class WineRepositoryImpl implements WineRepository {
                         rs.getString("region"),
                         rs.getString("type"),
                         rs.getInt("vintage"),
-                        rs.getString("image_url")
+                        rs.getString("image_url"),
+                        rs.getTimestamp("created_at").toLocalDateTime()
                 )
         );
     }
