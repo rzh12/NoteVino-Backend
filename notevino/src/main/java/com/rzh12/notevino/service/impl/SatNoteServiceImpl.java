@@ -28,11 +28,12 @@ public class SatNoteServiceImpl implements SatNoteService {
 
     @Override
     public SatNoteResponse getSatNoteByWineId(Integer wineId) {
-        // 獲取當前用戶的 userId
+
         Integer userId = getCurrentUserId();
 
-        // 查詢 SAT Note 並返回
-        return satNoteRepository.findSatNoteByWineIdAndUserId(wineId, userId);
+        SatNoteResponse satNoteResponse = satNoteRepository.findSatNoteByWineIdAndUserId(wineId, userId);
+
+        return satNoteResponse;
     }
 
     @Override

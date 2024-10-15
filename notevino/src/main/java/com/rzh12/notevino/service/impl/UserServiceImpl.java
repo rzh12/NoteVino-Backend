@@ -43,6 +43,10 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Email is already in use");
         }
 
+        if (userRequest.getPassword() == null || userRequest.getPassword().isEmpty()) {
+            throw new RuntimeException("Password cannot be null or empty");
+        }
+
         User user = new User();
         user.setProvider("LOCAL");
         user.setUsername(userRequest.getUsername());

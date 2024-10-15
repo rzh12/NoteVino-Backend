@@ -45,14 +45,18 @@ public class SatNoteController {
     // Read SAT Note
     @GetMapping("/{wineId}/sat-note")
     public ResponseEntity<ApiResponse> getSatNote(@PathVariable Integer wineId) {
+        try {
+            SatNoteResponse satNoteResponse = satNoteService.getSatNoteByWineId(wineId);
+            if (satNoteResponse == null) {
+                // Return 200 and null SAT note
+                return ResponseEntity.ok(new ApiResponse<>(true, "No SAT note found", null));
+            }
 
-        SatNoteResponse satNoteResponse = satNoteService.getSatNoteByWineId(wineId);
-
-        if (satNoteResponse != null) {
             ApiResponse<SatNoteResponse> response = new ApiResponse<>(true, "SAT note retrieved successfully!", satNoteResponse);
             return ResponseEntity.status(HttpStatus.OK).body(response);
-        } else {
-            ApiResponse<SatNoteResponse> response = new ApiResponse<>(false, "SAT note not found!", null);
+
+        } catch (RuntimeException e) {
+            ApiResponse<String> response = new ApiResponse<>(false, e.getMessage(), null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }

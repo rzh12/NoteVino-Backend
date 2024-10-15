@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class SatNoteRepositoryImpl implements SatNoteRepository {
 
@@ -73,8 +75,11 @@ public class SatNoteRepositoryImpl implements SatNoteRepository {
         if (!existsByWineIdAndUserId(wineId, userId)) {
             throw new IllegalArgumentException("User does not have permission to view this SAT note.");
         }
-        String sql = "SELECT sweetness, acidity, tannin, alcohol, body, flavour_intensity, finish, quality, potential_for_ageing FROM sat_notes WHERE wine_id = ? AND user_id = ?";
-        return jdbcTemplate.queryForObject(sql, new Object[]{wineId, userId}, (rs, rowNum) ->
+
+        String sql = "SELECT sweetness, acidity, tannin, alcohol, body, flavour_intensity, finish, quality, potential_for_ageing " +
+                "FROM sat_notes WHERE wine_id = ? AND user_id = ?";
+
+        List<SatNoteResponse> result = jdbcTemplate.query(sql, new Object[]{wineId, userId}, (rs, rowNum) ->
                 new SatNoteResponse(
                         rs.getString("sweetness"),
                         rs.getString("acidity"),
@@ -87,5 +92,7 @@ public class SatNoteRepositoryImpl implements SatNoteRepository {
                         rs.getString("potential_for_ageing")
                 )
         );
+
+        return result.isEmpty() ? null : result.get(0);
     }
 }
