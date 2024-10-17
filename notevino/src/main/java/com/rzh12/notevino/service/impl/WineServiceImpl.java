@@ -80,13 +80,12 @@ public class WineServiceImpl implements WineService {
 
     @Override
     public List<WineAutocompleteResponse> autocompleteWines(String query) {
-        // 如果查詢字串為空，直接顯示最熱門的酒款
+        // If the query string is empty, directly display the most popular wines
         if (query == null || query.trim().isEmpty()) {
-            // 從 Redis 中獲取熱門的前 10 個酒款 (ZSet)
+            // Retrieve the top 10 popular wines from Redis (ZSet)
             Set<Object> cachedResults = redisTemplate.opsForZSet().reverseRange("autocomplete:read", 0, 9);
 
             if (cachedResults != null && !cachedResults.isEmpty()) {
-                // 將熱門結果轉換為 WineAutocompleteResponse，返回最多 10 個
                 return cachedResults.stream()
                         .map(result -> {
                             String[] parts = result.toString().split("\\|");
@@ -98,10 +97,8 @@ public class WineServiceImpl implements WineService {
                         .limit(10)
                         .collect(Collectors.toList());
             } else {
-                // 如果 Redis 中沒有數據，從資料庫查詢
                 List<WineAutocompleteResponse> dbResults = wineRepository.getTopWines();
 
-                // 更新 Redis
                 for (WineAutocompleteResponse result : dbResults) {
                     String redisValue = String.format("%d|%s|%s", result.getWineId(), result.getName(), result.getRegion());
                     redisTemplate.opsForZSet().add("autocomplete:read", redisValue, result.getScore());
@@ -111,16 +108,12 @@ public class WineServiceImpl implements WineService {
             }
         }
 
-        // 從 Redis 中獲取熱門的前 50 個酒款 (ZSet)
         Set<Object> cachedResults = redisTemplate.opsForZSet().reverseRange("autocomplete:read", 0, 49);
 
-        // 查詢字串轉為小寫以便進行不區分大小寫的匹配
         String searchQuery = query.toLowerCase();
 
-        // 準備結果列表
         List<WineAutocompleteResponse> filteredResults;
 
-        // 在 Redis 中過濾符合查詢字串的結果
         if (cachedResults != null && !cachedResults.isEmpty()) {
             filteredResults = cachedResults.stream()
                     .map(result -> {
@@ -132,18 +125,17 @@ public class WineServiceImpl implements WineService {
                     })
                     .filter(response -> response.getName().toLowerCase().contains(searchQuery) ||
                             response.getRegion().toLowerCase().contains(searchQuery))
-                    .limit(10)  // 優先返回 Redis 中最多 10 個匹配結果
+                    .limit(10)
                     .collect(Collectors.toList());
         } else {
             filteredResults = new ArrayList<>();
         }
 
-        // 如果 Redis 中的結果不足 10 筆，從資料庫中補充
+        // If there are fewer than 10 results in Redis, supplement from the database
         if (filteredResults.size() < 10) {
             int remainingCount = 10 - filteredResults.size();
             List<WineAutocompleteResponse> dbResults = wineRepository.autocompleteWines(query);
 
-            // 從資料庫結果中補充剩餘的部分
             List<WineAutocompleteResponse> additionalResults = dbResults.stream()
                     .filter(response -> filteredResults.stream().noneMatch(existing ->
                             existing.getWineId().equals(response.getWineId())))
@@ -152,7 +144,6 @@ public class WineServiceImpl implements WineService {
 
             filteredResults.addAll(additionalResults);
 
-            // 將從資料庫查詢的結果更新到 Redis 中
             for (WineAutocompleteResponse result : additionalResults) {
                 String redisValue = String.format("%d|%s|%s", result.getWineId(), result.getName(), result.getRegion());
                 redisTemplate.opsForZSet().add("autocomplete:read", redisValue, result.getScore());

@@ -24,7 +24,6 @@ public class WineRepositoryImpl implements WineRepository {
     public Integer saveWine(WineRequest wineRequest) {
         String sql = "INSERT INTO user_uploaded_wines (user_id, name, region, type, vintage, image_url) VALUES (?, ?, ?, ?, ?, ?)";
 
-        // 使用 KeyHolder 來捕獲自增 ID
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -38,7 +37,6 @@ public class WineRepositoryImpl implements WineRepository {
             return ps;
         }, keyHolder);
 
-        // 從 keyHolder 中取得自增 ID 並返回
         return keyHolder.getKey().intValue();
     }
 
@@ -134,7 +132,6 @@ public class WineRepositoryImpl implements WineRepository {
         );
     }
 
-
     @Override
     public List<WineAutocompleteResponse> getTopWines() {
         String sql = "SELECT uw.wine_id, uw.name, uw.region, uw.score " +
@@ -159,7 +156,6 @@ public class WineRepositoryImpl implements WineRepository {
                 )
         );
     }
-
 
     @Override
     public Double getScore(String wineName, String region) {

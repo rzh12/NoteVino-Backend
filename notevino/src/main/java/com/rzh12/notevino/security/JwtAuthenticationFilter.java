@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             Claims claims = jwtUtil.extractClaims(token);
-            String email = claims.getSubject();  // 提取 email 作為 subject
+            String email = claims.getSubject();
 
             Integer userId = (Integer) claims.get("userId");
             String username = (String) claims.get("username");

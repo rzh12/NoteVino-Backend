@@ -32,10 +32,9 @@ public class WineController {
 
         Integer wineId = wineService.addNewWine(wineRequest, image);
 
-        // 上傳成功後，增加該酒款在 Redis 中的頻次
+        // After a successful upload, increase the frequency of this wine in Redis
         wineService.incrementWineScore(wineRequest.getName(), wineRequest.getRegion());
 
-        // 返回成功響應
         ApiResponse response = new ApiResponse(true, "Wine added successfully!", wineId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -101,14 +100,12 @@ public class WineController {
     public ResponseEntity<ApiResponse<List<WineAutocompleteResponse>>> autocompleteWines(
             @RequestParam("query") String query) {
 
-        // 調用服務層獲取自動完成的匹配結果
+        // Call the service layer to retrieve the autocomplete match results
         List<WineAutocompleteResponse> results = wineService.autocompleteWines(query);
 
         if (!results.isEmpty()) {
-            // 返回自動完成的匹配結果
             return ResponseEntity.ok(new ApiResponse<>(true, "Matches found!", results));
         } else {
-            // 如果沒有匹配結果，返回 204 No Content
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new ApiResponse<>(false, "No matches found!", null));
         }
     }
