@@ -1,6 +1,5 @@
 package com.rzh12.notevino.service.impl;
 
-import com.rzh12.notevino.dto.UserDetailDTO;
 import com.rzh12.notevino.dto.UserSigninRequest;
 import com.rzh12.notevino.dto.UserSignupRequest;
 import com.rzh12.notevino.dto.UserResponse;
@@ -9,8 +8,8 @@ import com.rzh12.notevino.repository.UserRepository;
 import com.rzh12.notevino.security.JwtUtil;
 import com.rzh12.notevino.service.S3Service;
 import com.rzh12.notevino.service.UserService;
+import com.rzh12.notevino.service.UserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -103,7 +102,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String updateAvatar(MultipartFile file) {
 
-        Integer userId = getCurrentUserId();
+        Integer userId = UserUtil.getCurrentUserId();
 
         if (file != null && !file.isEmpty()) {
             String imageUrl = s3Service.uploadFile(file, "avatar");
@@ -125,11 +124,5 @@ public class UserServiceImpl implements UserService {
 
         return jwtUtil.generateToken(claims, user.getEmail());
     }
-
-    private Integer getCurrentUserId() {
-        UserDetailDTO currentUser = (UserDetailDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return currentUser.getUserId();
-    }
-
 }
 

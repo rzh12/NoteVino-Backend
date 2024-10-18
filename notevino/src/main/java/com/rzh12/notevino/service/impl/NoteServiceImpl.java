@@ -2,12 +2,11 @@ package com.rzh12.notevino.service.impl;
 
 import com.rzh12.notevino.dto.FreeFormNoteRequest;
 import com.rzh12.notevino.dto.FreeFormNoteResponse;
-import com.rzh12.notevino.dto.UserDetailDTO;
 import com.rzh12.notevino.dto.WineDetailsResponse;
 import com.rzh12.notevino.repository.NoteRepository;
 import com.rzh12.notevino.service.NoteService;
+import com.rzh12.notevino.service.UserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,7 +19,7 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public FreeFormNoteResponse createFreeFormNote(Integer wineId, FreeFormNoteRequest freeFormNoteRequest) {
-        Integer userId = getCurrentUserId();
+        Integer userId = UserUtil.getCurrentUserId();
 
         if (noteRepository.existsWineByIdAndUserId(wineId, userId)) {
             return noteRepository.createFreeFormNoteAndReturnDetails(wineId, userId, freeFormNoteRequest);
@@ -39,7 +38,7 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public LocalDateTime updateFreeFormNote(Integer wineId, Integer noteId, FreeFormNoteRequest freeFormNoteRequest) {
-        Integer userId = getCurrentUserId();
+        Integer userId = UserUtil.getCurrentUserId();
 
         if (noteRepository.existsWineByIdAndUserId(wineId, userId) && noteRepository.existsNoteByIdAndUserId(noteId, userId)) {
             return noteRepository.updateFreeFormNote(noteId, freeFormNoteRequest);
@@ -49,7 +48,7 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public boolean deleteNote(Integer wineId, Integer noteId) {
-        Integer userId = getCurrentUserId();
+        Integer userId = UserUtil.getCurrentUserId();
 
         if (noteRepository.existsWineByIdAndUserId(wineId, userId) && noteRepository.existsNoteByIdAndUserId(noteId, userId)) {
             return noteRepository.deleteNoteById(noteId);
@@ -57,8 +56,4 @@ public class NoteServiceImpl implements NoteService {
         return false;
     }
 
-    private Integer getCurrentUserId() {
-        UserDetailDTO currentUser = (UserDetailDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return currentUser.getUserId();
-    }
 }

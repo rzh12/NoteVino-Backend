@@ -1,15 +1,14 @@
 package com.rzh12.notevino.service.impl;
 
-import com.rzh12.notevino.dto.UserDetailDTO;
 import com.rzh12.notevino.dto.WineAutocompleteResponse;
 import com.rzh12.notevino.dto.WineRequest;
 import com.rzh12.notevino.dto.WineResponse;
 import com.rzh12.notevino.repository.WineRepository;
 import com.rzh12.notevino.service.S3Service;
+import com.rzh12.notevino.service.UserUtil;
 import com.rzh12.notevino.service.WineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,7 +37,7 @@ public class WineServiceImpl implements WineService {
             wineRequest.setImageUrl(imageUrl);
         }
 
-        Integer userId = getCurrentUserId();
+        Integer userId = UserUtil.getCurrentUserId();
         wineRequest.setUserId(userId);
 
         return wineRepository.saveWine(wineRequest);
@@ -46,13 +45,13 @@ public class WineServiceImpl implements WineService {
 
     @Override
     public List<WineResponse> getUserUploadedWines() {
-        Integer userId = getCurrentUserId();
+        Integer userId = UserUtil.getCurrentUserId();
         return wineRepository.findAllByUserId(userId);
     }
 
     @Override
     public boolean updateWine(Integer wineId, WineRequest wineRequest) {
-        Integer userId = getCurrentUserId();
+        Integer userId = UserUtil.getCurrentUserId();
 
         if (wineRepository.existsByIdAndUserId(wineId, userId)) {
             wineRepository.updateWine(wineId, wineRequest);
@@ -63,7 +62,7 @@ public class WineServiceImpl implements WineService {
 
     @Override
     public boolean deleteWine(Integer wineId) {
-        Integer userId = getCurrentUserId();
+        Integer userId = UserUtil.getCurrentUserId();
 
         if (wineRepository.existsByIdAndUserId(wineId, userId)) {
             wineRepository.softDeleteWineById(wineId);
@@ -74,7 +73,7 @@ public class WineServiceImpl implements WineService {
 
     @Override
     public List<WineResponse> searchWinesByName(String query) {
-        Integer userId = getCurrentUserId();
+        Integer userId = UserUtil.getCurrentUserId();
         return wineRepository.searchWinesByNameAndUserId(query, userId);
     }
 
@@ -163,10 +162,4 @@ public class WineServiceImpl implements WineService {
         String redisValue = String.format("%s|%s", wineName, region);
         redisTemplate.opsForZSet().incrementScore("autocomplete:write", redisValue, 1);
     }
-
-    private Integer getCurrentUserId() {
-        UserDetailDTO currentUser = (UserDetailDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return currentUser.getUserId();
-    }
-
 }
