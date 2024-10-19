@@ -4,6 +4,8 @@ import com.rzh12.notevino.dto.ApiResponse;
 import com.rzh12.notevino.dto.FreeFormNoteRequest;
 import com.rzh12.notevino.dto.FreeFormNoteResponse;
 import com.rzh12.notevino.dto.WineDetailsResponse;
+import com.rzh12.notevino.exception.ResourceNotFoundException;
+import com.rzh12.notevino.exception.BadRequestException;
 import com.rzh12.notevino.service.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,12 +32,10 @@ public class NoteController {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ApiResponse<>(true, "Note created successfully!", noteResponse));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(false, "Failed to create note!", null));
+            throw new BadRequestException("Failed to create note!");
         }
     }
 
-    // Get detailed information on a particular wine and the associated notes
     @GetMapping("/{wineId}")
     public ResponseEntity<ApiResponse> getWineDetailsWithNotes(@PathVariable Integer wineId) {
         WineDetailsResponse wineDetails = noteService.getWineDetailsWithNotes(wineId);
@@ -43,7 +43,7 @@ public class NoteController {
         if (wineDetails != null) {
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse(true, "Wine details retrieved successfully!", wineDetails));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, "Wine not found!", null));
+            throw new ResourceNotFoundException("Wine not found!");
         }
     }
 
@@ -53,16 +53,8 @@ public class NoteController {
             @PathVariable Integer noteId,
             @RequestBody FreeFormNoteRequest freeFormNoteRequest) {
 
-        try {
-            LocalDateTime updatedAt = noteService.updateFreeFormNote(wineId, noteId, freeFormNoteRequest);
-
-            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, "Note updated successfully!", updatedAt));
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(false, "An error occurred while updating the note.", null));
-        }
+        LocalDateTime updatedAt = noteService.updateFreeFormNote(wineId, noteId, freeFormNoteRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, "Note updated successfully!", updatedAt));
     }
 
     @DeleteMapping("/{wineId}/notes/{noteId}")
@@ -75,7 +67,7 @@ public class NoteController {
         if (noteDeleted) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, "Wine or Note not found!", null));
+            throw new ResourceNotFoundException("Wine or Note not found!");
         }
     }
 }

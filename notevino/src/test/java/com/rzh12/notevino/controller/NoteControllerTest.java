@@ -40,7 +40,9 @@ class NoteControllerTest {
     private JwtUtil jwtUtil;
 
     @BeforeEach
-    void setUp() {    }
+    void setUp() {
+
+    }
 
     @Test
     void createTastingNote_success() throws Exception {
@@ -142,9 +144,12 @@ class NoteControllerTest {
                 .andExpect(status().isNotFound())
                 .andReturn();
 
+        ObjectMapper objectMapper = new ObjectMapper();
         String responseString = result.getResponse().getContentAsString();
-        assertEquals(true, responseString.contains("\"success\":false"));
-        assertEquals(true, responseString.contains("Wine or Note does not belong to the current user."));
+        JsonNode jsonResponse = objectMapper.readTree(responseString);
+
+        assertEquals(false, jsonResponse.get("success").asBoolean());
+        assertEquals("Wine or Note does not belong to the current user.", jsonResponse.get("message").asText());
     }
 
     @Test
@@ -158,9 +163,12 @@ class NoteControllerTest {
                 .andExpect(status().isInternalServerError())
                 .andReturn();
 
+        ObjectMapper objectMapper = new ObjectMapper();
         String responseString = result.getResponse().getContentAsString();
-        assertEquals(true, responseString.contains("\"success\":false"));
-        assertEquals(true, responseString.contains("An error occurred while updating the note."));
+        JsonNode jsonResponse = objectMapper.readTree(responseString);
+
+        assertEquals(false, jsonResponse.get("success").asBoolean());
+        assertEquals("An error occurred while updating the note.", jsonResponse.get("message").asText());
     }
 
     @Test
