@@ -3,10 +3,32 @@
     <img src="./notevino/nv-logo-300.png" alt="Logo" width="200px">
   </a>
   <h1 style="margin: 0; text-align:center;">NoteVino</h1>
+  
+  ![Java](https://img.shields.io/badge/Java-17-ED8B00?style=flat&logoColor=white)
+  ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.3-6DB33F?style=flat&logoColor=white)
+  ![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=flat&logoColor=black)
+  ![npm](https://img.shields.io/badge/npm-10.8.2-CB3837?style=flat&logoColor=white)
+  ![License](https://img.shields.io/badge/License-MIT-blue?style=flat)
+
+  <p align="center">
+  <a href="#about">About</a>
+  |
+  <a href="#repositories">Repositories</a>
+  |
+  <a href="#built-with">Built With</a>
+  |
+  <a href="#features">Features</a>
+  |
+  <a href="#architecture">Architecture</a>
+  |
+  <a href="#contact">Contact</a>
+  </p>
 </div>
 
 ## About
 <a href="https://notevino.com">NoteVino</a> is a personalized recommendation system and wine tasting notes platform designed for wine enthusiasts. It helps users manage wine information and write tasting notes. Based on users' past tasting records and preferences, NoteVino recommends suitable wines, assisting users in discovering new selections.
+
+**Note: There's a quick login button for testing purposes on landing page. Interested users can use it to quickly explore the platform without entering any personal information.**
 
 ## Repositories
 This project is divided into two main parts: **Backend** and **Frontend**. You can find the source code for both parts below:
@@ -64,7 +86,16 @@ This project is divided into two main parts: **Backend** and **Frontend**. You c
 ### **User Authentication**
 - Secured using Spring Security with JWT tokens, ensuring protected routes and actions for logged-in users only.
 
+## Architecture
+![Architecture Diagram](./notevino/notevino-2024-10-14-10.png)
 
+## Contact
+
+For any inquiries or questions, feel free to reach out to me through the following platforms:
+
+[![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:jrzhenhan@gmail.com)
+
+You can also visit the project live at [NoteVino](https://notevino.com) for more details.
 
 
 
